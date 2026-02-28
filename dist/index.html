@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="uz">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="/binocrm-logo.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Bino CRM - Ko'chmas mulk sotuvlarini boshqarish tizimi" />
+  <title>Bino CRM</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <!-- <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script> -->
+  <script type="module" crossorigin src="/assets/index-BqWQyxRm.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-lTQ1LL4Q.css">
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <!-- <script>
+    // Global Flatpickr Initialization for Bino CRM
+    (function () {
+      function initFlatpickr(element) {
+        if (!element || element.classList.contains('flatpickr-input')) return;
+
+        // Apply Flatpickr
+        flatpickr(element, {
+          dateFormat: "Y-m-d",
+          allowInput: true,
+          disableMobile: "true",
+          onOpen: function (selectedDates, dateStr, instance) {
+            instance.calendarContainer.classList.add('animate-slide-up');
+          },
+          onChange: function (selectedDates, dateStr, instance) {
+            // Trigger native events so React picks up the change
+            element.dispatchEvent(new Event('input', { bubbles: true }));
+            element.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        });
+      }
+
+      // Initial run
+      const initialInputs = document.querySelectorAll('input[type="date"]');
+      initialInputs.forEach(initFlatpickr);
+
+      // MutationObserver to catch dynamic inputs (common in React)
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === 1) { // ELEMENT_NODE
+              if (node.tagName === 'INPUT' && node.type === 'date') {
+                initFlatpickr(node);
+              }
+              const inputs = node.querySelectorAll('input[type="date"]');
+              inputs.forEach(initFlatpickr);
+            }
+          });
+        });
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+    })();
+  </script> -->
+</body>
+
+</html>

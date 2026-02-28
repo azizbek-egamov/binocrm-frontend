@@ -1,0 +1,120 @@
+.column-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.column-filter-select {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-secondary);
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    outline: none;
+    cursor: pointer;
+    max-width: 120px;
+    transition: all 0.2s;
+}
+
+.column-filter-select:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.column-filter-select option {
+    background: #1e1e2d;
+    color: #fff;
+}
+
+@media (max-width: 768px) {
+    .column-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .column-filter-select {
+        max-width: 100%;
+        width: 100%;
+    }
+}
+
+.filter-group-v2 {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.toolbar-select {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 14px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    outline: none;
+    cursor: pointer;
+    min-width: 180px;
+    height: 44px;
+    transition: all 0.2s;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+}
+
+.toolbar-select:hover {
+    border-color: rgba(139, 92, 246, 0.5);
+    background-color: var(--bg-tertiary);
+}
+
+.toolbar-select:focus {
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.toolbar-select option {
+    background: #1e1e2d;
+    color: #fff;
+    padding: 10px;
+}
+
+/* Infinite Scroll - Loading Spinner */
+.load-more-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px 0;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.spinner-small {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(139, 92, 246, 0.2);
+    border-top-color: #8b5cf6;
+    border-radius: 50%;
+    animation: spin-small 0.7s linear infinite;
+}
+
+@keyframes spin-small {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Infinite Scroll - Load More Hint */
+.load-more-hint {
+    text-align: center;
+    padding: 10px 0;
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 11px;
+    font-weight: 500;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    margin-top: 4px;
+}

@@ -1,0 +1,396 @@
+/* Modals are global in modals.css */
+
+/* Form Rows */
+.form-row {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.form-row.three-cols {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.form-row.two-cols {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+@media (max-width: 768px) {
+
+    .form-row.three-cols,
+    .form-row.two-cols {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Form Groups */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.form-group label .required {
+    color: #ef4444;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    color: var(--text-primary);
+    transition: all 0.2s;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+    color: var(--text-muted);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.form-group select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+}
+
+.form-group select option {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.hint-text {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+/* Phone Input */
+.phone-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 14px;
+    transition: all 0.2s;
+}
+
+.phone-input-wrapper:focus-within {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.phone-input-wrapper svg {
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.phone-input-wrapper .phone-input {
+    border: none;
+    background: transparent;
+    padding: 0;
+    font-size: 14px;
+    color: var(--text-primary);
+    width: 100%;
+}
+
+.phone-input-wrapper .phone-input:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+/* Duration Inputs */
+.duration-inputs {
+    display: flex;
+    gap: 12px;
+}
+
+.duration-field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.duration-field input {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    color: var(--text-primary);
+    text-align: center;
+    width: 100%;
+}
+
+.duration-field input:focus {
+    outline: none;
+    border-color: #3b82f6;
+}
+
+.duration-field span {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* Read-only Field */
+.readonly-field {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.info-text {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+/* Audio Upload */
+.audio-upload {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.audio-upload-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-tertiary);
+    border: 2px dashed var(--border-color);
+    border-radius: 10px;
+    padding: 14px 20px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.audio-upload-btn:hover {
+    border-color: #3b82f6;
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.audio-upload-btn svg {
+    flex-shrink: 0;
+}
+
+/* Accordion */
+.lead-accordion {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+.accordion-trigger {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.accordion-trigger:hover {
+    background: var(--bg-tertiary);
+}
+
+.accordion-content {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Children Section */
+.child-row {
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    position: relative;
+}
+
+.child-row .remove-child-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+}
+
+.add-child-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px;
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    border: 1px dashed #3b82f6;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.add-child-btn:hover {
+    background: rgba(59, 130, 246, 0.2);
+}
+
+.remove-child-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.remove-child-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+/* Modal Footer */
+.lead-modal-footer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 0 0;
+    margin-top: 16px;
+    border-top: 1px solid var(--border-color);
+}
+
+.footer-spacer {
+    flex: 1;
+}
+
+/* V2 Buttons */
+.btn-v2 {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-v2-primary {
+    background: #3b82f6;
+    color: white;
+}
+
+.btn-v2-primary:hover {
+    background: #2563eb;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn-v2-primary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.btn-v2-danger {
+    background: #ef4444;
+    color: white;
+}
+
+.btn-v2-danger:hover {
+    background: #dc2626;
+}
+
+.btn-v2-danger:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.btn-v2-danger-light {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.btn-v2-danger-light:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.cancel-btn {
+    padding: 12px 24px;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cancel-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.submit-btn {
+    padding: 12px 32px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.submit-btn:hover {
+    background: #2563eb;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
