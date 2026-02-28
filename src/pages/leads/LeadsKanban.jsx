@@ -78,7 +78,7 @@ const StatCard = ({ title, value, icon, gradient }) => (
 );
 
 // Lead Card Component
-const LeadCard = ({ lead, onClick, onConvert, onArchive, onUnarchive, onDragStart, onDragEnd }) => {
+const LeadCard = ({ lead, onClick, onConvert, onArchive, onUnarchive, onDragStart, onDragEnd, selectMode, isSelected, onToggleSelect }) => {
     const formatDateTime = (dateStr) => {
         if (!dateStr) return '';
         const date = new Date(dateStr);
@@ -120,12 +120,27 @@ const LeadCard = ({ lead, onClick, onConvert, onArchive, onUnarchive, onDragStar
 
     return (
         <div
-            className="lead-card"
-            draggable={!lead.is_converted}
-            onDragStart={(e) => onDragStart(e, lead)}
+            className={`lead-card ${isSelected ? 'lead-card-selected' : ''}`}
+            draggable={!lead.is_converted && !selectMode}
+            onDragStart={(e) => !selectMode && onDragStart(e, lead)}
             onDragEnd={onDragEnd}
-            onClick={onClick}
+            onClick={() => selectMode ? onToggleSelect(lead.id) : onClick()}
         >
+            {selectMode && (
+                <label className="lead-checkbox-wrapper" onClick={(e) => e.stopPropagation()}>
+                    <input
+                        type="checkbox"
+                        className="lead-checkbox"
+                        checked={isSelected}
+                        onChange={() => onToggleSelect(lead.id)}
+                    />
+                    <span className="lead-checkmark">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </span>
+                </label>
+            )}
             <div className="lead-card-top">
                 <div className="lead-avatar">
                     {getInitials(lead.client_name)}
@@ -244,6 +259,44 @@ const LeadsKanban = () => {
     const [isSuperUser, setIsSuperUser] = useState(false);
     const [archivedFilter, setArchivedFilter] = useState('active');
     const [callFilter, setCallFilter] = useState('all');
+    const [selectMode, setSelectMode] = useState(false);
+    const [selectedLeads, setSelectedLeads] = useState(new Set());
+    const [bulkOperator, setBulkOperator] = useState('');
+    const [bulkAssigning, setBulkAssigning] = useState(false);
+
+    const toggleSelectLead = (leadId) => {
+        setSelectedLeads(prev => {
+            const next = new Set(prev);
+            if (next.has(leadId)) next.delete(leadId);
+            else next.add(leadId);
+            return next;
+        });
+    };
+
+    const selectAllInColumns = () => {
+        const allIds = new Set();
+        columns.forEach(col => {
+            (col.items || []).forEach(lead => allIds.add(lead.id));
+        });
+        setSelectedLeads(allIds);
+    };
+
+    const handleBulkAssign = async () => {
+        if (!bulkOperator || selectedLeads.size === 0) return;
+        setBulkAssigning(true);
+        try {
+            const res = await leadService.bulkAssign([...selectedLeads], parseInt(bulkOperator));
+            toast.success(`${res.data.updated} ta lead ${res.data.operator} ga biriktirildi!`);
+            setSelectMode(false);
+            setSelectedLeads(new Set());
+            setBulkOperator('');
+            loadData();
+        } catch {
+            toast.error('Biriktirishda xatolik!');
+        } finally {
+            setBulkAssigning(false);
+        }
+    };
 
     useEffect(() => {
         const fetchUserInfo = async () => {
@@ -755,7 +808,56 @@ const LeadsKanban = () => {
                         <RefreshIcon />
                         <span>Yangilash</span>
                     </button>
+
+                    {isSuperUser && (
+                        <button
+                            className={`btn-v2 ${selectMode ? 'btn-v2-primary' : 'btn-v2-dark'}`}
+                            onClick={() => {
+                                setSelectMode(!selectMode);
+                                if (selectMode) {
+                                    setSelectedLeads(new Set());
+                                    setBulkOperator('');
+                                }
+                            }}
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <polyline points="9 11 12 14 22 4"></polyline>
+                                <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path>
+                            </svg>
+                            <span>{selectMode ? 'Bekor qilish' : 'Tanlash'}</span>
+                        </button>
+                    )}
                 </div>
+
+                {selectMode && (
+                    <div className="bulk-assign-bar">
+                        <span className="bulk-count-badge">
+                            ✓ {selectedLeads.size} ta tanlandi
+                        </span>
+                        <button className="btn-v2 btn-v2-outline-sm" onClick={selectAllInColumns}>
+                            Barchasini tanlash
+                        </button>
+                        <select
+                            className="toolbar-select"
+                            value={bulkOperator}
+                            onChange={(e) => setBulkOperator(e.target.value)}
+                        >
+                            <option value="">Operator tanlang</option>
+                            {operators.map(op => (
+                                <option key={op.id} value={op.id}>
+                                    {op.first_name ? `${op.first_name} ${op.last_name || ''}` : op.username}
+                                </option>
+                            ))}
+                        </select>
+                        <button
+                            className="btn-v2 btn-v2-primary"
+                            onClick={handleBulkAssign}
+                            disabled={selectedLeads.size === 0 || !bulkOperator || bulkAssigning}
+                        >
+                            {bulkAssigning ? 'Bajarilmoqda...' : `Biriktirish (${selectedLeads.size})`}
+                        </button>
+                    </div>
+                )}
 
                 <div className="toolbar-right">
                     <button
@@ -887,6 +989,9 @@ const LeadsKanban = () => {
                                             onUnarchive={handleUnarchive}
                                             onDragStart={handleDragStart}
                                             onDragEnd={handleDragEnd}
+                                            selectMode={selectMode}
+                                            isSelected={selectedLeads.has(lead.id)}
+                                            onToggleSelect={toggleSelectLead}
                                         />
                                     ))}
                                     {(!col.items || col.items.length === 0) && (

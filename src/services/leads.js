@@ -46,4 +46,10 @@ export const leadService = {
         params,
         responseType: 'blob'
     }),
+
+    // Bulk assign leads to operator
+    bulkAssign: (leadIds, operatorId) => api.post('/leads/bulk_assign/', {
+        lead_ids: leadIds,
+        operator_id: operatorId
+    }),
 };
