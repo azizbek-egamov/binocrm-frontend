@@ -3,6 +3,12 @@ import { leadService } from '../../services/leads';
 import { getUsers } from '../../services/users';
 import api from '../../services/api';
 import { toast } from 'sonner';
+
+const getMediaUrl = () => {
+    const baseUrl = api.defaults.baseURL || import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+    return baseUrl.replace(/\/api\/?$/, '');
+};
+
 import Modal from '../../components/ui/Modal';
 import './LeadForm.css';
 
@@ -340,7 +346,7 @@ const LeadForm = ({ isOpen, onClose, lead, initialStageId, onSuccess }) => {
                         <div className="form-group">
                             <label>Audio yozuv</label>
                             {lead?.audio_recording
-                                ? <audio controls src={lead.audio_recording} style={{ height: '32px' }} />
+                                ? <audio controls src={`${getMediaUrl()}${lead.audio_recording}`} style={{ height: '32px' }} />
                                 : <span className="info-text">Mavjud emas</span>
                             }
                         </div>
