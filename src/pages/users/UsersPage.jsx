@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '../../context/AuthContext';
 import { getUsers, createUser, updateUser, deleteUser } from '../../services/users';
+import expensesService from '../../services/expenses';
 import {
     SearchIcon,
     EditIcon,
@@ -17,6 +18,7 @@ import './UsersPage.css';
 const UsersPage = () => {
     const { user: currentUser, refreshUser } = useAuth();
     const [users, setUsers] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -46,12 +48,14 @@ const UsersPage = () => {
             can_view_analytics: true,
             can_view_sms: true,
             can_view_expenses: true,
-            can_view_buildings_info: true
+            can_view_buildings_info: true,
+            allowed_categories: []
         }
     });
 
     useEffect(() => {
         loadUsers();
+        loadCategories();
     }, []);
 
     const loadUsers = async () => {
@@ -64,6 +68,15 @@ const UsersPage = () => {
             toast.error("Foydalanuvchilarni yuklashda xatolik");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const loadCategories = async () => {
+        try {
+            const res = await expensesService.getCategories({ active_only: 'true' });
+            setCategories(Array.isArray(res) ? res : res.results || []);
+        } catch (error) {
+            console.error("Error loading categories:", error);
         }
     };
 
@@ -88,7 +101,8 @@ const UsersPage = () => {
                 can_view_analytics: true,
                 can_view_sms: true,
                 can_view_expenses: true,
-                can_view_buildings_info: true
+                can_view_buildings_info: true,
+                allowed_categories: []
             }
         });
     };
@@ -119,7 +133,8 @@ const UsersPage = () => {
                 can_view_analytics: true,
                 can_view_sms: true,
                 can_view_expenses: true,
-                can_view_buildings_info: true
+                can_view_buildings_info: true,
+                allowed_categories: []
             }
         });
         setModal({ open: true, type: 'edit', user });
@@ -142,6 +157,23 @@ const UsersPage = () => {
                 [field]: !prev.permissions[field]
             }
         }));
+    };
+
+    const handleCategoryToggle = (categoryId) => {
+        setFormData(prev => {
+            const current = prev.permissions.allowed_categories || [];
+            const updated = current.includes(categoryId)
+                ? current.filter(id => id !== categoryId)
+                : [...current, categoryId];
+            
+            return {
+                ...prev,
+                permissions: {
+                    ...prev.permissions,
+                    allowed_categories: updated
+                }
+            };
+        });
     };
 
     const handleSubmit = async (e) => {
@@ -420,21 +452,46 @@ const UsersPage = () => {
                                     </div>
 
                                     {!formData.is_superuser && (
-                                        <div className="form-full">
-                                            <label style={{ margin: '12px 0', display: 'block', fontWeight: 'bold' }}>Modullar ruxsati</label>
-                                            <div className="permissions-grid">
-                                                {permissionLabels.map(p => (
-                                                    <label key={p.key} className="checkbox-group">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={formData.permissions[p.key]}
-                                                            onChange={() => handlePermissionChange(p.key)}
-                                                        />
-                                                        <span className="checkbox-label">{p.label}</span>
-                                                    </label>
-                                                ))}
+                                        <>
+                                            <div className="form-full" style={{ marginTop: '16px' }}>
+                                                <label style={{ margin: '12px 0', display: 'block', fontWeight: 'bold' }}>Modullar ruxsati</label>
+                                                <div className="permissions-grid">
+                                                    {permissionLabels.map(p => (
+                                                        <label key={p.key} className="checkbox-group">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={formData.permissions[p.key]}
+                                                                onChange={() => handlePermissionChange(p.key)}
+                                                            />
+                                                            <span className="checkbox-label">{p.label}</span>
+                                                        </label>
+                                                    ))}
+                                                </div>
                                             </div>
-                                        </div>
+
+                                            {formData.permissions.can_view_expenses && (
+                                                <div className="form-full" style={{ marginTop: '24px' }}>
+                                                    <label style={{ margin: '12px 0', display: 'block', fontWeight: 'bold' }}>Xarajat Kategoriyalari</label>
+                                                    <div className="permissions-grid">
+                                                        {categories.map(cat => (
+                                                            <label key={cat.id} className="checkbox-group">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={formData.permissions.allowed_categories?.includes(cat.id)}
+                                                                    onChange={() => handleCategoryToggle(cat.id)}
+                                                                />
+                                                                <span className="checkbox-label">
+                                                                    {cat.name}
+                                                                </span>
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                    {categories.length === 0 && (
+                                                        <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>Kategoriyalar yuklanmoqda yoki mavjud emas.</p>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             </div>

@@ -346,7 +346,7 @@ const LeadForm = ({ isOpen, onClose, lead, initialStageId, onSuccess }) => {
                         <div className="form-group">
                             <label>Audio yozuv</label>
                             {lead?.audio_recording
-                                ? <audio controls src={`${getMediaUrl()}${lead.audio_recording}`} style={{ height: '32px' }} />
+                                ? <audio controls controlsList="nodownload" onContextMenu={(e) => e.preventDefault()} src={`${getMediaUrl()}${lead.audio_recording}`} style={{ height: '32px' }} />
                                 : <span className="info-text">Mavjud emas</span>
                             }
                         </div>
