@@ -2,6 +2,9 @@ import { createPortal } from 'react-dom';
 import { useState, useEffect } from 'react';
 import expensesService from '../../services/expenses';
 import * as buildingsService from '../../services/buildings';
+import { getUsers } from '../../services/users';
+import { useAuth } from '../../context/AuthContext';
+
 import { toast } from 'sonner';
 import './Expenses.css';
 import {
@@ -28,6 +31,9 @@ const ExpensesList = () => {
     const [search, setSearch] = useState('');
     const [buildingFilter, setBuildingFilter] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('');
+    const [users, setUsers] = useState([]);
+    const [userFilter, setUserFilter] = useState('');
+    const { user } = useAuth();
 
     // Pagination
     const [pagination, setPagination] = useState({
@@ -57,7 +63,7 @@ const ExpensesList = () => {
     useEffect(() => {
         loadExpenses();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pagination.page, search, buildingFilter, categoryFilter]);
+    }, [pagination.page, search, buildingFilter, categoryFilter, userFilter]);
 
     const loadInitialData = async () => {
         try {
@@ -67,6 +73,15 @@ const ExpensesList = () => {
             ]);
             setBuildings(buildingsData);
             setCategories(categoriesData);
+
+            if (user?.is_superuser) {
+                try {
+                    const usersData = await getUsers({ page_size: 100 });
+                    setUsers(usersData.results || usersData || []);
+                } catch (err) {
+                    console.error("Foydalanuvchilarni yuklashda xatolik", err);
+                }
+            }
         } catch (error) {
             console.error(error);
             toast.error("Bino yoki kategoriyalarni yuklashda xatolik");
@@ -83,6 +98,7 @@ const ExpensesList = () => {
             if (search) params.search = search;
             if (buildingFilter) params.building = buildingFilter;
             if (categoryFilter) params.category = categoryFilter;
+            if (userFilter) params.user_id = userFilter;
 
             const data = await expensesService.getExpenses(params);
 
@@ -271,6 +287,21 @@ const ExpensesList = () => {
                                     <option key={c.id} value={c.id}>{c.name}</option>
                                 ))}
                             </select>
+                            
+                            {user?.is_superuser && users.length > 0 && (
+                                <select
+                                    className="filter-select"
+                                    value={userFilter}
+                                    onChange={(e) => setUserFilter(e.target.value)}
+                                >
+                                    <option value="">Barcha foydalanuvchilar</option>
+                                    {users.map(u => (
+                                        <option key={u.id} value={u.id}>
+                                            {u.first_name || u.username} {u.last_name || ''}
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
 
                             <div className="results-count">
                                 Jami: <strong>{pagination.count}</strong> ta xarajat
