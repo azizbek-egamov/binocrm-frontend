@@ -122,7 +122,10 @@ const UsersPage = () => {
             is_staff: user.is_staff,
             is_superuser: user.is_superuser,
             is_active: user.is_active,
-            permissions: user.permissions || {
+            permissions: user.permissions ? {
+                ...user.permissions,
+                allowed_categories: (user.permissions.allowed_categories || []).map(c => c.id || c)
+            } : {
                 can_view_cities: true,
                 can_view_buildings: true,
                 can_view_homes: true,
