@@ -77,7 +77,7 @@ const ExpensesList = () => {
             if (user?.is_superuser) {
                 try {
                     const usersData = await getUsers({ page_size: 100 });
-                    setUsers(usersData.results || usersData || []);
+                    setUsers(usersData.data?.results || usersData.data || []);
                 } catch (err) {
                     console.error("Foydalanuvchilarni yuklashda xatolik", err);
                 }
@@ -98,7 +98,7 @@ const ExpensesList = () => {
             if (search) params.search = search;
             if (buildingFilter) params.building = buildingFilter;
             if (categoryFilter) params.category = categoryFilter;
-            if (userFilter) params.user_id = userFilter;
+            if (userFilter) params.user = userFilter;
 
             const data = await expensesService.getExpenses(params);
 
