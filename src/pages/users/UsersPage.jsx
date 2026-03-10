@@ -49,6 +49,7 @@ const UsersPage = () => {
             can_view_sms: true,
             can_view_expenses: true,
             can_view_buildings_info: true,
+            can_login_app: true,
             allowed_categories: []
         }
     });
@@ -102,6 +103,7 @@ const UsersPage = () => {
                 can_view_sms: true,
                 can_view_expenses: true,
                 can_view_buildings_info: true,
+                can_login_app: true,
                 allowed_categories: []
             }
         });
@@ -137,6 +139,7 @@ const UsersPage = () => {
                 can_view_sms: true,
                 can_view_expenses: true,
                 can_view_buildings_info: true,
+                can_login_app: true,
                 allowed_categories: []
             }
         });
@@ -450,6 +453,14 @@ const UsersPage = () => {
                                                     onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
                                                 />
                                                 <span className="checkbox-label">Faol</span>
+                                            </label>
+                                            <label className="checkbox-group">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={formData.permissions?.can_login_app !== false}
+                                                    onChange={() => handlePermissionChange('can_login_app')}
+                                                />
+                                                <span className="checkbox-label">Ilovaga kirish</span>
                                             </label>
                                         </div>
                                     </div>
