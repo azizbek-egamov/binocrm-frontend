@@ -48,14 +48,14 @@ const AnalyticsFilterDrawer = ({
 
     const handleReset = () => {
         const resetData = activeTab === 'sales' ? {
-            start_date: new Date(new Date().setMonth(new Date().getMonth() - 3)).toISOString().split('T')[0],
-            end_date: new Date().toISOString().split('T')[0],
+            start_date: '',
+            end_date: '',
             city: '',
             building: '',
             status: ''
         } : {
-            start_date: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0],
-            end_date: new Date().toISOString().split('T')[0],
+            start_date: '',
+            end_date: '',
             operator: '',
             stage: '',
             call_status: ''
