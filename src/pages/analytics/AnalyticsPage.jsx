@@ -848,14 +848,32 @@ const AnalyticsPage = () => {
         buildings={buildings}
         stages={stages}
         operators={operators}
-        onFilter={(newFilters) => {
-          if (activeTab === "sales") {
-            setSalesFilters(newFilters);
-          } else {
-            setLeadsFilters(newFilters);
+        onFilter={async (newFilters) => {
+          setLoading(true);
+          try {
+            if (activeTab === "sales") {
+              setSalesFilters(newFilters);
+              const res = await analyticsService.getContractsStats(newFilters);
+              setStats(res.data);
+            } else {
+              setLeadsFilters(newFilters);
+              const res = await analyticsService.getLeadsStats(newFilters);
+              setStats(res.data);
+              
+              if (res.data?.leads_by_operator) {
+                setOperators(
+                  res.data.leads_by_operator
+                    .map((o) => ({ id: o.operator_id, name: o.operator_name }))
+                    .filter((o) => o.id),
+                );
+              }
+            }
+          } catch (error) {
+            toast.error("Statistikalarni yuklashda xatolik yuz berdi");
+            console.error(error);
+          } finally {
+            setLoading(false);
           }
-          // fetchStats will be triggered by useEffect or manually called
-          setTimeout(() => fetchStats(), 0);
         }}
       />
     </div>
