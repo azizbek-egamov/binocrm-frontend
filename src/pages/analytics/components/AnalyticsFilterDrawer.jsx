@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Filter, X, RefreshCcw } from 'lucide-react';
+import { Filter, X, RefreshCcw, Archive, Check } from 'lucide-react';
 
 const AnalyticsFilterDrawer = ({
     isOpen,
@@ -93,6 +93,26 @@ const AnalyticsFilterDrawer = ({
                         {/* Date Range Section */}
                         <div className="form-group">
                             <label>Sana oralig'i</label>
+                            <div className="quick-date-buttons" style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginBottom: '10px' }}>
+                                <button type="button" className="btn-mini" onClick={() => {
+                                    const today = new Date().toISOString().split('T')[0];
+                                    setFilters(prev => ({ ...prev, start_date: today, end_date: today }));
+                                }}>Bugun</button>
+                                <button type="button" className="btn-mini" onClick={() => {
+                                    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+                                    setFilters(prev => ({ ...prev, start_date: yesterday, end_date: yesterday }));
+                                }}>Kecha</button>
+                                <button type="button" className="btn-mini" onClick={() => {
+                                    const end = new Date().toISOString().split('T')[0];
+                                    const start = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
+                                    setFilters(prev => ({ ...prev, start_date: start, end_date: end }));
+                                }}>7 kun</button>
+                                <button type="button" className="btn-mini" onClick={() => {
+                                    const end = new Date().toISOString().split('T')[0];
+                                    const start = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+                                    setFilters(prev => ({ ...prev, start_date: start, end_date: end }));
+                                }}>Ushbu oy</button>
+                            </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                                 <input
                                     type="date"
@@ -153,7 +173,7 @@ const AnalyticsFilterDrawer = ({
                                     <select name="operator" value={filters.operator} onChange={handleChange}>
                                         <option value="">Barchasi</option>
                                         {operators.map((op, i) => (
-                                            <option key={i} value={op}>{op}</option>
+                                            <option key={i} value={op.id}>{op.name}</option>
                                         ))}
                                     </select>
                                 </div>
@@ -174,14 +194,25 @@ const AnalyticsFilterDrawer = ({
                                     <label>Qo'ng'iroq holati</label>
                                     <select name="call_status" value={filters.call_status} onChange={handleChange}>
                                         <option value="">Barchasi</option>
-                                        <option value="answered">Javob berildi</option>
-                                        <option value="not_answered">Javob berilmadi</option>
-                                        <option value="client_answered">Mijoz javob berdi</option>
-                                        <option value="client_not_answered">Mijoz javob bermadi</option>
+                                        <optgroup label="Asosiy holatlar">
+                                            <option value="answered">Javob berildi</option>
+                                            <option value="not_answered">Javob berilmadi</option>
+                                            <option value="client_answered">Mijoz javob berdi</option>
+                                            <option value="client_not_answered">Mijoz javob bermadi</option>
+                                        </optgroup>
+                                        <optgroup label="Maxsus bosqichlar">
+                                            <option value="34">KIRUVCHI QO'NG'IROQ</option>
+                                            <option value="35">JAVOB BERILMADI</option>
+                                            <option value="43">MIJOZGA CHIQUVCHI</option>
+                                            <option value="44">MIJOZ JAVOB BERMADI (Stage 44)</option>
+                                        </optgroup>
                                     </select>
                                 </div>
+
+                                {/* Include Archived Completely Removed */}
                             </>
-                        )}
+                        )
+}
                     </div>
 
                     <div className="modal-actions">
