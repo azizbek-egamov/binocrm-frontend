@@ -28,6 +28,7 @@ const setupRoot = (el) => {
     if (isDarkMode()) themes.push(am5themes_Dark.new(root));
     root.setThemes(themes);
     root.numberFormatter.setAll({
+        intlLocales: "ru-RU",
         numberFormat: "#,###",
         numericFields: ["valueY", "valueX"]
     });

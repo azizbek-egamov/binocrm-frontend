@@ -615,10 +615,11 @@ const AnalyticsPage = () => {
             </div>
           </div>
 
+          {/* ═══ 4-QATOR: OPERATORLAR (Jadval + Chart) ═══ */}
           <div className="chart-card">
             <div className="chart-card-header">
-              <span className="chart-number">Qo'ng'iroq davomiyligi (Sekund)</span>
-              <h4>O'rtacha qo'ng'iroq davomiyligi (kunlar)</h4>
+              <span className="chart-number">Qo'ng'iroq davomiyligi</span>
+              <h4>O'rtacha qo'ng'iroq davomiyligi (daqiqa)</h4>
             </div>
             <div className="chart-body">
               <AmLineChart
@@ -627,12 +628,12 @@ const AnalyticsPage = () => {
                 yField="avg_duration"
                 height={250}
                 color="#f59e0b"
-                tooltipText="Sana: {categoryX}\nO'rtacha: {valueY} sek"
+                tooltipText="Sana: {categoryX}\nO'rtacha: {duration_text}"
               />
             </div>
           </div>
 
-          {/* ═══ 4-QATOR: OPERATORLAR (Jadval + Chart) ═══ */}
+          {/* ═══ 5-QATOR: OPERATORLAR (Jadval + Chart) ═══ */}
           <div className="chart-card">
             <div className="chart-card-header">
               <span className="chart-number">Top operatorlar</span>
