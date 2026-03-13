@@ -146,17 +146,9 @@ const AnalyticsPage = () => {
         leadService.getStages().catch(() => []),
       ]);
       // Ensure we always set arrays
-      setCities(
-        Array.isArray(citiesRes)
-          ? citiesRes
-          : citiesRes?.data || citiesRes?.results || [],
-      );
-      setBuildings(
-        Array.isArray(buildingsRes)
-          ? buildingsRes
-          : buildingsRes?.data || buildingsRes?.results || [],
-      );
-      const stagesData = stagesRes?.data || stagesRes?.results || stagesRes;
+      setCities(citiesRes?.data?.results || citiesRes?.data || (Array.isArray(citiesRes) ? citiesRes : []));
+      setBuildings(buildingsRes?.data?.results || buildingsRes?.data || (Array.isArray(buildingsRes) ? buildingsRes : []));
+      const stagesData = stagesRes?.data?.results || stagesRes?.data || [];
       setStages(Array.isArray(stagesData) ? stagesData : []);
     } catch (error) {
       console.error("Filtrlarni yuklashda xatolik:", error);

@@ -183,7 +183,7 @@ const AnalyticsFilterDrawer = ({
                                     <label>Bosqich bo'yicha</label>
                                     <select name="stage" value={filters.stage} onChange={handleChange}>
                                         <option value="">Barchasi</option>
-                                        {Array.isArray(stages) && stages.map(s => (
+                                        {Array.isArray(stages) && stages.filter(s => !['answered', 'not_answered', 'client_answered', 'client_not_answered'].includes(s.key)).map(s => (
                                             <option key={s.id} value={s.id}>{s.name}</option>
                                         ))}
                                     </select>
@@ -194,18 +194,19 @@ const AnalyticsFilterDrawer = ({
                                     <label>Qo'ng'iroq holati</label>
                                     <select name="call_status" value={filters.call_status} onChange={handleChange}>
                                         <option value="">Barchasi</option>
-                                        <optgroup label="Asosiy holatlar">
-                                            <option value="answered">Javob berildi</option>
-                                            <option value="not_answered">Javob berilmadi</option>
-                                            <option value="client_answered">Mijoz javob berdi</option>
-                                            <option value="client_not_answered">Mijoz javob bermadi</option>
-                                        </optgroup>
-                                        <optgroup label="Maxsus bosqichlar">
-                                            <option value="34">KIRUVCHI QO'NG'IROQ</option>
-                                            <option value="35">JAVOB BERILMADI</option>
-                                            <option value="43">MIJOZGA CHIQUVCHI</option>
-                                            <option value="44">MIJOZ JAVOB BERMADI (Stage 44)</option>
-                                        </optgroup>
+                                        {['answered', 'not_answered', 'client_answered', 'client_not_answered'].map(key => {
+                                            const stage = (stages || []).find(s => s.key === key);
+                                            return (
+                                                <option key={key} value={key}>
+                                                    {stage ? stage.name : (
+                                                        key === 'answered' ? 'Javob berildi' :
+                                                        key === 'not_answered' ? 'Javob berilmadi' :
+                                                        key === 'client_answered' ? 'Mijoz javob berdi' :
+                                                        key === 'client_not_answered' ? 'Mijoz javob bermadi' : key
+                                                    )}
+                                                </option>
+                                            );
+                                        })}
                                     </select>
                                 </div>
 
