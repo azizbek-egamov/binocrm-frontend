@@ -347,7 +347,7 @@ const LeadsKanban = () => {
 
             const [kanbanRes, statsRes] = await Promise.all([
                 leadService.getKanban(params),
-                leadService.getStatistics().catch(() => ({ data: {} }))
+                leadService.getStatistics(params).catch(() => ({ data: {} }))
             ]);
             // Har bir ustun uchun page=1 va has_more qo'shish
             const columnsWithPage = kanbanRes.data.map(col => ({

@@ -465,6 +465,8 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    min-width: 0;
+    flex: 1;
 }
 
 .title-text {
@@ -474,6 +476,8 @@
     color: var(--text-primary);
     letter-spacing: 0.5px;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .item-count {
