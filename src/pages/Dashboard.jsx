@@ -77,7 +77,6 @@ const Dashboard = () => {
     };
 
     const debtors = summary?.debtors || [];
-    const maxDebt = Math.max(...debtors.map(x => x.amount || 0), 1);
 
     return (
         <div className="dashboard-content">
@@ -220,8 +219,8 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                {/* Debtors Table */}
-                <div className="chart-card" style={{ padding: '0', overflow: 'hidden' }}>
+                {/* Debtors Table - Full Width */}
+                <div className="chart-card full-width-card" style={{ padding: '0', overflow: 'hidden' }}>
                     <div className="chart-header" style={{ padding: '32px 32px 0 32px', marginBottom: '24px' }}>
                         <h3>Eng ko'p qarzdorlar</h3>
                     </div>
@@ -230,18 +229,35 @@ const Dashboard = () => {
                             <thead>
                                 <tr>
                                     <th>Mijoz</th>
+                                    <th>To'lov rejasi</th>
                                     <th>Qarz miqdori</th>
-                                    <th>Ulush</th>
+                                    <th>To'langan ulush</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {debtors.slice(0, 8).map((d, i) => {
-                                    const pct = Math.round((d.amount || 0) / maxDebt * 100);
+                                {debtors.slice(0, 10).map((d, i) => {
+                                    const total = d.total_amount || 0;
+                                    const paid = d.paid_amount || 0;
+                                    const pct = total > 0 ? Math.round((paid / total) * 100) : 0;
+
                                     return (
-                                        <tr key={i}>
+                                        <tr key={d.id || i}>
                                             <td className="table-building-name">
-                                                <UserIcon size={12} style={{ marginRight: 8, color: '#ef4444', display: 'inline' }} />
-                                                {d.client || '—'}
+                                                <div className="table-cell-detailed">
+                                                    <span>
+                                                        <UserIcon size={12} style={{ marginRight: 8, color: '#ef4444', display: 'inline' }} />
+                                                        {d.client || '—'}
+                                                    </span>
+                                                    <span className="sub-text">Shartnoma: #{d.contract || '—'}</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div className="table-cell-detailed">
+                                                    <span>{formatNumber(total)}</span>
+                                                    <span className="sub-text">
+                                                        To'langan: <span className="paid-amount-text">{formatNumber(paid)}</span>
+                                                    </span>
+                                                </div>
                                             </td>
                                             <td>
                                                 <span className="debt-value" style={{ color: '#ef4444' }}>
@@ -255,11 +271,13 @@ const Dashboard = () => {
                                                             className="progress-fill"
                                                             style={{
                                                                 width: `${pct}%`,
-                                                                background: 'linear-gradient(90deg, #ef4444, #f87171)'
+                                                                background: 'linear-gradient(90deg, #10b981, #34d399)'
                                                             }}
                                                         ></div>
                                                     </div>
-                                                    <span>{pct}%</span>
+                                                    <span style={{ fontWeight: 600, color: pct === 100 ? '#10b981' : 'inherit' }}>
+                                                        {pct}%
+                                                    </span>
                                                 </div>
                                             </td>
                                         </tr>
@@ -269,7 +287,7 @@ const Dashboard = () => {
                         </table>
                     </div>
                     <div className="table-footer-note">
-                        <p><strong>Ulush</strong> — mijozning qarzi eng yuqori qarzga nisbatan foizda.</p>
+                        <p><strong>To'langan ulush</strong> — shartnomaning umumiy summasiga nisbatan to'langan qism foizda.</p>
                     </div>
                 </div>
             </section>

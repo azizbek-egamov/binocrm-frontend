@@ -1199,3 +1199,33 @@
     font-size: 14px;
     font-weight: 700;
 }
+
+/* Detailed Debtors Table Styles */
+.full-width-card {
+    grid-column: 1 / -1 !important;
+}
+
+.sub-text {
+    display: block;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+    font-weight: 500;
+}
+
+.table-cell-detailed {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.paid-amount-text {
+    color: var(--accent-success);
+    font-weight: 600;
+}
+
+@media (max-width: 1200px) {
+    .full-width-card {
+        grid-column: 1 / -1 !important;
+    }
+}
