@@ -69,11 +69,7 @@ function App() {
               />
               <Route
                 path="/sms"
-                element={
-                  <ProtectedLayout permission="can_view_sms">
-                    <SmsPage />
-                  </ProtectedLayout>
-                }
+                element={<Navigate to="/" replace />}
               />
               <Route
                 path="/users"

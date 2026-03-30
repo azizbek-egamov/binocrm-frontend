@@ -128,13 +128,13 @@ const Sidebar = () => {
             label: 'Analitika',
             permission: 'can_view_analytics'
         },
-        {
-            type: 'link',
-            path: '/sms',
-            icon: <MessageIcon />,
-            label: 'SMS Xizmati',
-            permission: 'can_view_sms'
-        },
+        // {
+        //     type: 'link',
+        //     path: '/sms',
+        //     icon: <MessageIcon />,
+        //     label: 'SMS Xizmati',
+        //     permission: 'can_view_sms'
+        // },
         {
             type: 'group',
             key: 'chiqimlar',
