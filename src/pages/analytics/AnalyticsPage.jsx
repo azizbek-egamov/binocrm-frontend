@@ -678,22 +678,16 @@ const AnalyticsPage = () => {
               <h4>Kim ko'proq mijozga aylantiryapti?</h4>
             </div>
             <div className="chart-body">
-              {stats?.operator_conversion && stats.operator_conversion.length > 0 ? (
-                <AmComposedChart
-                  data={stats.operator_conversion}
-                  xField="name"
-                  barFields={[
-                    { field: "total", name: "Jami leadlar", color: "#6366f1" },
-                    { field: "converted", name: "Mijozga aylangan", color: "#10b981" },
-                  ]}
-                  lineField={{ field: "rate", name: "Konversiya %", color: "#f59e0b" }}
-                  height={250}
-                />
-              ) : (
-                <div style={{ height: "250px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-tertiary)" }}>
-                  Ma'lumot topilmadi
-                </div>
-              )}
+              <AmComposedChart
+                data={stats.operator_conversion || []}
+                xField="name"
+                barFields={[
+                  { field: "total", name: "Jami leadlar", color: "#6366f1" },
+                  { field: "converted", name: "Mijozga aylangan", color: "#10b981" },
+                ]}
+                lineField={{ field: "rate", name: "Konversiya %", color: "#f59e0b" }}
+                height={250}
+              />
             </div>
           </div>
 
@@ -723,19 +717,13 @@ const AnalyticsPage = () => {
               <h4>Leadlar manba turi bo'yicha</h4>
             </div>
             <div className="chart-body">
-              {stats?.by_source && stats.by_source.length > 0 ? (
-                <AmPieChart
-                  data={stats.by_source}
-                  nameField="name"
-                  valueField="count"
-                  height={250}
-                  innerRadius={55}
-                />
-              ) : (
-                <div style={{ height: "250px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-tertiary)" }}>
-                  Ma'lumot topilmadi
-                </div>
-              )}
+              <AmPieChart
+                data={stats.by_source || []}
+                nameField="name"
+                valueField="count"
+                height={250}
+                innerRadius={55}
+              />
             </div>
           </div>
 
@@ -851,7 +839,7 @@ const AnalyticsPage = () => {
               setLeadsFilters(newFilters);
               const res = await analyticsService.getLeadsStats(newFilters);
               setStats(res.data);
-              
+
               if (res.data?.leads_by_operator) {
                 setOperators(
                   res.data.leads_by_operator

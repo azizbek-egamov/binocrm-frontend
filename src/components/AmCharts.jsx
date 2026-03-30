@@ -41,16 +41,19 @@ const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#8b5cf6'
 export const NoData = ({ height = '300px' }) => (
     <div style={{
         height,
+        width: '100%',
+        boxSizing: 'border-box',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         background: 'var(--bg-secondary, #f8fafc)',
-        borderRadius: '16px',
+        borderRadius: '20px',
         color: 'var(--text-secondary, #64748b)',
         fontSize: '14px',
-        border: '1px dashed var(--border-color, #e2e8f0)',
-        gap: '8px'
+        border: '2px dashed var(--border-color, #e2e8f0)',
+        gap: '8px',
+        padding: '20px'
     }}>
         <div style={{ opacity: 0.5 }}>
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

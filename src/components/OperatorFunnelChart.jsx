@@ -349,24 +349,7 @@ export const OperatorFunnel = ({
                 height={340}
               />
             ) : (
-              <div
-                style={{
-                  padding: "40px 20px",
-                  textAlign: "center",
-                  color: themeColors.textSecondary,
-                  background: "rgba(255,255,255,0.03)",
-                  border: `1px dashed ${themeColors.borderColor}`,
-                  borderRadius: "12px",
-                  fontSize: "13px",
-                }}
-              >
-                <div style={{ fontWeight: "500" }}>Ma'lumot mavjud emas</div>
-                <div
-                  style={{ fontSize: "11px", marginTop: "4px", opacity: 0.7 }}
-                >
-                  Ushbu operator uchun bosqichlar bo'yicha leadlar topilmadi
-                </div>
-              </div>
+              <NoData height="340px" />
             )}
           </div>
         )}

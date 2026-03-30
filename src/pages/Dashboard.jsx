@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { analyticsService } from '../services/analytics';
-import { AmBarChart, AmAreaChart, AmPieChart } from '../components/AmCharts';
+import { AmBarChart, AmAreaChart, AmPieChart, NoData } from '../components/AmCharts';
 import FunnelChart from '../components/FunnelChart';
 import './Dashboard.css';
 
@@ -285,6 +285,9 @@ const Dashboard = () => {
                                 })}
                             </tbody>
                         </table>
+                        {debtors.length === 0 && (
+                            <NoData height="200px" />
+                        )}
                     </div>
                     <div className="table-footer-note">
                         <p><strong>To'langan ulush</strong> — shartnomaning umumiy summasiga nisbatan to'langan qism foizda.</p>
