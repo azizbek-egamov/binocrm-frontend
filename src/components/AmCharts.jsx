@@ -37,6 +37,31 @@ const setupRoot = (el) => {
 
 const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#8b5cf6', '#ec4899', '#3b82f6', '#14b8a6', '#f472b6'];
 
+/** Standard "No Data" placeholder for charts */
+export const NoData = ({ height = '300px' }) => (
+    <div style={{
+        height,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'var(--bg-secondary, #f8fafc)',
+        borderRadius: '16px',
+        color: 'var(--text-secondary, #64748b)',
+        fontSize: '14px',
+        border: '1px dashed var(--border-color, #e2e8f0)',
+        gap: '8px'
+    }}>
+        <div style={{ opacity: 0.5 }}>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+                <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+            </svg>
+        </div>
+        <span style={{ fontWeight: 500 }}>Ma'lumot topilmadi</span>
+    </div>
+);
+
 // ════════════════════════════════════════════════
 //  AmBarChart
 // ════════════════════════════════════════════════
@@ -173,9 +198,7 @@ export const AmBarChart = ({
     return (
         <ErrorBoundary height={`${height}px`}>
             {(!data || data.length === 0) ? (
-                <div style={{ height: `${height}px`, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-secondary, #f8fafc)', borderRadius: '12px', color: 'var(--text-secondary, #64748b)', fontSize: '14px', border: '1px dashed var(--border-color, #e2e8f0)' }}>
-                    Ma'lumot topilmadi
-                </div>
+                <NoData height={`${height}px`} />
             ) : (
                 <div ref={ref} style={{ width: '100%', height: `${height}px` }} />
             )}
@@ -274,9 +297,7 @@ export const AmAreaChart = ({
     return (
         <ErrorBoundary height={`${height}px`}>
             {(!data || data.length === 0) ? (
-                <div style={{ height: `${height}px`, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-secondary, #f8fafc)', borderRadius: '12px', color: 'var(--text-secondary, #64748b)', fontSize: '14px', border: '1px dashed var(--border-color, #e2e8f0)' }}>
-                    Ma'lumot topilmadi
-                </div>
+                <NoData height={`${height}px`} />
             ) : (
                 <div ref={ref} style={{ width: '100%', height: `${height}px` }} />
             )}
@@ -367,9 +388,7 @@ export const AmPieChart = ({
     return (
         <ErrorBoundary height={`${height}px`}>
             {(!data || data.length === 0) ? (
-                <div style={{ height: `${height}px`, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-secondary, #f8fafc)', borderRadius: '12px', color: 'var(--text-secondary, #64748b)', fontSize: '14px', border: '1px dashed var(--border-color, #e2e8f0)' }}>
-                    Ma'lumot topilmadi
-                </div>
+                <NoData height={`${height}px`} />
             ) : (
                 <div ref={ref} style={{ width: '100%', height: `${height}px` }} />
             )}
@@ -499,9 +518,7 @@ export const AmComposedChart = ({
     return (
         <ErrorBoundary height={`${height}px`}>
             {(!data || data.length === 0) ? (
-                <div style={{ height: `${height}px`, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-secondary, #f8fafc)', borderRadius: '12px', color: 'var(--text-secondary, #64748b)', fontSize: '14px', border: '1px dashed var(--border-color, #e2e8f0)' }}>
-                    Ma'lumot topilmadi
-                </div>
+                <NoData height={`${height}px`} />
             ) : (
                 <div ref={ref} style={{ width: '100%', height: `${height}px` }} />
             )}

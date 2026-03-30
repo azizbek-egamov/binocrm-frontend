@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useLayoutEffect } from 'react';
+import { NoData } from './AmCharts';
 import * as am5 from '@amcharts/amcharts5';
 import * as am5percent from '@amcharts/amcharts5/percent';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
@@ -17,12 +18,11 @@ const FunnelChart = ({ items = [], title, icon, height = 400 }) => {
     const chartRef = useRef(null);
     const rootRef = useRef(null);
 
-    useLayoutEffect(() => {
-        if (!chartRef.current || !items || items.length === 0) return;
+    const validItems = (items || []).filter(item => (item.count || 0) > 0);
+    const hasData = validItems.length > 0;
 
-        // Filter out 0-value items
-        const validItems = items.filter(item => (item.count || 0) > 0);
-        if (validItems.length === 0) return;
+    useLayoutEffect(() => {
+        if (!chartRef.current || !hasData) return;
 
         // Create root
         const root = am5.Root.new(chartRef.current);
@@ -192,7 +192,7 @@ const FunnelChart = ({ items = [], title, icon, height = 400 }) => {
         return () => {
             root.dispose();
         };
-    }, [items]);
+    }, [items, hasData, validItems]);
 
     // Watch for theme changes and re-render
     useEffect(() => {
@@ -212,7 +212,23 @@ const FunnelChart = ({ items = [], title, icon, height = 400 }) => {
         return () => observer.disconnect();
     }, []);
 
-    if (!items || items.length === 0) return null;
+    if (!items || items.length === 0 || !hasData) {
+        return (
+            <div style={{ width: '100%' }}>
+                {title && (
+                    <div style={{
+                        display: 'flex', alignItems: 'center', gap: '8px',
+                        marginBottom: '8px', fontSize: '15px', fontWeight: '700',
+                        color: 'var(--text-primary)',
+                    }}>
+                        {icon}
+                        {title}
+                    </div>
+                )}
+                <NoData height={`${height}px`} />
+            </div>
+        );
+    }
 
     return (
         <div style={{ width: '100%' }}>

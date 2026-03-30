@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
+import { NoData } from "./AmCharts";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5percent from "@amcharts/amcharts5/percent";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
@@ -46,10 +47,8 @@ const AmFunnel = ({ items, chartId, height = 380, onSliceClick }) => {
   const rootRef = useRef(null);
 
   React.useLayoutEffect(() => {
-    if (!chartRef.current || !items || items.length === 0) return;
-
-    const validItems = items.filter((item) => (item.count || 0) > 0);
-    if (validItems.length === 0) return;
+    const validItems = (items || []).filter((item) => (item.count || 0) > 0);
+    if (!chartRef.current || validItems.length === 0) return;
 
     const root = am5.Root.new(chartRef.current);
     rootRef.current = root;
@@ -193,7 +192,11 @@ const AmFunnel = ({ items, chartId, height = 380, onSliceClick }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, chartId]);
 
-  if (!items || items.length === 0) return null;
+  const validItems = (items || []).filter((item) => (item.count || 0) > 0);
+
+  if (!items || items.length === 0 || validItems.length === 0) {
+    return <NoData height={`${height}px`} />;
+  }
 
   return (
     <div ref={chartRef} style={{ width: "100%", height: `${height}px` }} />
@@ -242,7 +245,9 @@ export const OperatorFunnel = ({
     setSelectedIdx(selectedIdx === idx ? null : idx);
   };
 
-  if (!operators || operators.length === 0) return null;
+  if (!operators || operators.length === 0) {
+    return <NoData height="400px" />;
+  }
 
   return (
     <div>
