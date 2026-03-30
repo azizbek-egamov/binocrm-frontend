@@ -68,6 +68,17 @@ const Dashboard = () => {
         );
     }
 
+    const formatNumber = (num) => {
+        if (!num) return "0";
+        if (num >= 1e9) return (num / 1e9).toFixed(1) + " mlrd";
+        if (num >= 1e6) return (num / 1e6).toFixed(1) + " mln";
+        if (num >= 1e3) return (num / 1e3).toFixed(1) + " ming";
+        return num.toLocaleString();
+    };
+
+    const debtors = summary?.debtors || [];
+    const maxDebt = Math.max(...debtors.map(x => x.amount || 0), 1);
+
     return (
         <div className="dashboard-content">
             <header className="dashboard-header">
@@ -209,21 +220,56 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                {/* Debtors Chart */}
-                <div className="chart-card">
-                    <div className="chart-header">
+                {/* Debtors Table */}
+                <div className="chart-card" style={{ padding: '0', overflow: 'hidden' }}>
+                    <div className="chart-header" style={{ padding: '32px 32px 0 32px', marginBottom: '24px' }}>
                         <h3>Eng ko'p qarzdorlar</h3>
                     </div>
-                    <div className="chart-container">
-                        <AmBarChart
-                            data={summary?.debtors || []}
-                            xField="client"
-                            yField="amount"
-                            height={300}
-                            horizontal={true}
-                            color="#ef4444"
-                            tooltipFormatter="{categoryY}: {valueX}"
-                        />
+                    <div className="analytics-table-wrapper">
+                        <table className="analytics-table">
+                            <thead>
+                                <tr>
+                                    <th>Mijoz</th>
+                                    <th>Qarz miqdori</th>
+                                    <th>Ulush</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {debtors.slice(0, 8).map((d, i) => {
+                                    const pct = Math.round((d.amount || 0) / maxDebt * 100);
+                                    return (
+                                        <tr key={i}>
+                                            <td className="table-building-name">
+                                                <UserIcon size={12} style={{ marginRight: 8, color: '#ef4444', display: 'inline' }} />
+                                                {d.client || '—'}
+                                            </td>
+                                            <td>
+                                                <span className="debt-value" style={{ color: '#ef4444' }}>
+                                                    {formatNumber(d.amount)}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div className="progress-cell">
+                                                    <div className="progress-bar-mini">
+                                                        <div
+                                                            className="progress-fill"
+                                                            style={{
+                                                                width: `${pct}%`,
+                                                                background: 'linear-gradient(90deg, #ef4444, #f87171)'
+                                                            }}
+                                                        ></div>
+                                                    </div>
+                                                    <span>{pct}%</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="table-footer-note">
+                        <p><strong>Ulush</strong> — mijozning qarzi eng yuqori qarzga nisbatan foizda.</p>
                     </div>
                 </div>
             </section>
@@ -288,6 +334,7 @@ const Dashboard = () => {
 // Icons
 const CalendarIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>;
 const CheckIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>;
+const UserIcon = ({ size }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>;
 const StatIcon = ({ type }) => {
     if (type === 'building') return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="2" width="16" height="20" rx="2" /><path d="M9 22v-4h6v4" /></svg>;
     if (type === 'home') return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12l9-9 9 9" /><path d="M5 10v10a1 1 0 001 1h12a1 1 0 001-1V10" /></svg>;

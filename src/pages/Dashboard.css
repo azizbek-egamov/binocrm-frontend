@@ -1078,3 +1078,124 @@
         transform: translateY(0);
     }
 }
+
+/* ==========================================
+   ANALYTICS TABLE (Ported from Analytics.css)
+   ========================================== */
+.analytics-table-wrapper {
+    overflow-x: auto;
+}
+
+.analytics-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.analytics-table thead th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border-color);
+    background: rgba(99, 102, 241, 0.04);
+    white-space: nowrap;
+}
+
+.analytics-table tbody tr {
+    transition: background 0.2s;
+}
+
+.analytics-table tbody tr:hover {
+    background: rgba(99, 102, 241, 0.04);
+}
+
+.analytics-table tbody td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.table-building-name {
+    font-weight: 600;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.table-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.table-badge.sold {
+    background: rgba(99, 102, 241, 0.12);
+    color: #6366f1;
+}
+
+.table-badge.available {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+}
+
+/* ═══ PROGRESS BAR (mini) ═══ */
+.progress-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.progress-cell span {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    min-width: 40px;
+}
+
+.progress-bar-mini {
+    width: 80px;
+    height: 6px;
+    background: var(--bg-tertiary);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    border-radius: 3px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ═══ TABLE FOOTER NOTE ═══ */
+.table-footer-note {
+    padding: 12px 16px;
+    background: rgba(99, 102, 241, 0.02);
+    border-top: 1px dashed var(--border-color);
+    border-bottom-left-radius: var(--radius-xl);
+    border-bottom-right-radius: var(--radius-xl);
+}
+
+.table-footer-note p {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin: 0;
+    line-height: 1.4;
+}
+
+.table-footer-note strong {
+    color: var(--accent-primary);
+    font-weight: 600;
+}
+
+.debt-value {
+    font-size: 14px;
+    font-weight: 700;
+}
