@@ -117,11 +117,8 @@ const BuildingEdit = () => {
     }
 
     if (name === "total_area") {
-      const numeric = value.replace(/[^0-9.]/g, "");
-      const parts = numeric.split(".");
-      const formatted =
-        parts[0] + (parts.length > 1 ? "." + parts.slice(1).join("") : "");
-      setFormData((prev) => ({ ...prev, total_area: formatted }));
+      if (value && !/^\d+$/.test(value)) return;
+      setFormData((prev) => ({ ...prev, total_area: value }));
       return;
     }
 
