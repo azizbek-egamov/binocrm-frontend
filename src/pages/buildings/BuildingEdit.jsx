@@ -30,6 +30,7 @@ const BuildingEdit = () => {
     construction_start_date: "",
     construction_end_date: "",
     description: "",
+    total_area: "",
   });
 
   useEffect(() => {
@@ -66,6 +67,7 @@ const BuildingEdit = () => {
         construction_start_date: data.construction_start_date || "",
         construction_end_date: data.construction_end_date || "",
         description: data.description || "",
+        total_area: data.total_area || "",
       });
       if (data.padez_home && data.padez_home.length > 0) {
         setShowPadezInputs(true);
@@ -114,8 +116,12 @@ const BuildingEdit = () => {
       return;
     }
 
-    if (name === "code") {
-      setFormData((prev) => ({ ...prev, code: value.toUpperCase() }));
+    if (name === "total_area") {
+      const numeric = value.replace(/[^0-9.]/g, "");
+      const parts = numeric.split(".");
+      const formatted =
+        parts[0] + (parts.length > 1 ? "." + parts.slice(1).join("") : "");
+      setFormData((prev) => ({ ...prev, total_area: formatted }));
       return;
     }
 
@@ -227,6 +233,7 @@ const BuildingEdit = () => {
       padez_home: formData.padez_home.map((v) => parseInt(v) || 0),
       construction_status: formData.construction_status || "new",
       budget: formData.budget ? parseFloat(formData.budget) : 0,
+      total_area: formData.total_area ? parseFloat(formData.total_area) : 0,
       construction_start_date: formData.construction_start_date || null,
       construction_end_date: formData.construction_end_date || null,
       description: formData.description || "",
@@ -385,6 +392,22 @@ const BuildingEdit = () => {
                 onChange={handleChange}
                 placeholder="Bino nomini kiriting"
               />
+            </div>
+
+            {/* Umumiy maydon */}
+            <div className="bc-field">
+              <label className="bc-label">Umumiy maydon</label>
+              <div className="bc-input-suffix-wrap">
+                <input
+                  className="bc-input"
+                  type="text"
+                  name="total_area"
+                  value={formData.total_area}
+                  onChange={handleChange}
+                  placeholder="0.00"
+                />
+                <span className="bc-suffix">m²</span>
+              </div>
             </div>
           </div>
 
@@ -696,6 +719,12 @@ const BuildingEdit = () => {
                   {constructionStatusLabel[formData.construction_status]}
                 </strong>
               </div>
+              {formData.total_area && (
+                <div className="bc-mini-summary-row">
+                  <span>Umumiy maydon</span>
+                  <strong>{formData.total_area} m²</strong>
+                </div>
+              )}
               <div className="bc-mini-summary-row">
                 <span>Byudjet</span>
                 <strong>

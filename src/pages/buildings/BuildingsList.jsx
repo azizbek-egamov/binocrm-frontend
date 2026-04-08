@@ -242,6 +242,7 @@ const BuildingsList = () => {
                       <th>Shifr</th>
                       <th>Bino nomi</th>
                       <th>Shahar</th>
+                      <th>Maydon</th>
                       <th>Tuzilishi</th>
                       <th>Byudjet</th>
                       <th>Holat</th>
@@ -268,6 +269,9 @@ const BuildingsList = () => {
                         <td className="cell-name">{building.name}</td>
                         <td className="cell-city">
                           {building.city_name || "-"}
+                        </td>
+                        <td className="cell-area">
+                          {building.total_area ? `${building.total_area} m²` : "-"}
                         </td>
                         <td className="cell-structure">
                           <div

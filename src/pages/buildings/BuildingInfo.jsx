@@ -377,6 +377,13 @@ const BuildingInfo = () => {
             <div className="budget-stats-row">
               <div className="budget-mini-stats">
                 <div className="stat-item">
+                  <span className="stat-label">Umumiy maydon:</span>
+                  <span className="stat-value">
+                    {selectedBuilding.total_area || 0} m²
+                  </span>
+                </div>
+                <div className="stat-divider"></div>
+                <div className="stat-item">
                   <span className="stat-label">Byudjet:</span>
                   <span className="stat-value">
                     {formatNumber(selectedBuilding.budget)} so'm
