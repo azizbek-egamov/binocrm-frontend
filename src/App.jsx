@@ -77,7 +77,7 @@ function App() {
               <Route
                 path="/users"
                 element={
-                  <ProtectedLayout>
+                  <ProtectedLayout permission="can_view_users">
                     <UsersPage />
                   </ProtectedLayout>
                 }

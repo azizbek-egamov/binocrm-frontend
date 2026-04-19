@@ -4,12 +4,23 @@ import { getUsers } from '../../services/users';
 import api from '../../services/api';
 import { toast } from 'sonner';
 
-const getMediaUrl = () => {
+const formatAudioUrl = (audioPath) => {
+    if (!audioPath) return '';
+    if (audioPath.startsWith('http')) return audioPath;
+    
     let baseUrl = api.defaults.baseURL || import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
     baseUrl = baseUrl.replace(/\/api\/?$/, '');
-    // Ensure media/ prefix is included
-    const mediaPath = baseUrl.endsWith('/') ? 'media/' : '/media/';
-    return `${baseUrl}${mediaPath}`;
+    
+    // Ensure the path starts with /media/ if it doesn't already
+    let path = audioPath;
+    if (!path.startsWith('/media/') && !path.startsWith('media/')) {
+        path = '/media/' + path;
+    }
+    if (!path.startsWith('/')) path = '/' + path;
+
+    // Join and fix slashes (except protocol)
+    const fullUrl = `${baseUrl}${path}`.replace(/([^:])\/+/g, '$1/');
+    return fullUrl;
 };
 
 import Modal from '../../components/ui/Modal';
@@ -187,9 +198,10 @@ const LeadForm = ({ isOpen, onClose, lead, initialStageId, onSuccess }) => {
     const fetchUserInfo = async () => {
         try {
             const response = await api.get('/user/');
-            setIsSuperUser(response.data.is_superuser);
-            if (response.data.is_superuser) {
-                const opsRes = await getUsers();
+            const isManager = response.data.is_superuser || response.data.permissions?.can_view_users;
+            setIsSuperUser(isManager);
+            if (isManager) {
+                const opsRes = await getUsers({ is_operator: 'true' });
                 setOperators(opsRes.data?.results || opsRes.data || []);
             }
         } catch (error) {
@@ -381,18 +393,20 @@ const LeadForm = ({ isOpen, onClose, lead, initialStageId, onSuccess }) => {
                                     onChange={(val) => setFormData(p => ({ ...p, phone_number: val }))}
                                 />
                             </div>
-                            <div className="form-group">
-                                <label>Qo'ng'iroq holati</label>
-                                <select
-                                    name="call_status"
-                                    value={formData.call_status}
-                                    onChange={handleChange}
-                                >
-                                    {callStatusOptions.map(opt => (
-                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                    ))}
-                                </select>
-                            </div>
+                            {!isEdit && (
+                                <div className="form-group">
+                                    <label>Qo'ng'iroq holati</label>
+                                    <select
+                                        name="call_status"
+                                        value={formData.call_status}
+                                        onChange={handleChange}
+                                    >
+                                        {callStatusOptions.map(opt => (
+                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
                         </div>
 
                         <div className="form-row two-cols">
@@ -412,10 +426,8 @@ const LeadForm = ({ isOpen, onClose, lead, initialStageId, onSuccess }) => {
                                         controls 
                                         controlsList="nodownload" 
                                         onContextMenu={(e) => e.preventDefault()} 
-                                        src={lead.audio_recording.startsWith('http') 
-                                            ? lead.audio_recording 
-                                            : `${getMediaUrl().replace(/\/media\/?$/, '')}${lead.audio_recording}`.replace(/\/+/g, '/').replace('http:/', 'http://')} 
-                                        style={{ height: '32px' }} 
+                                        src={formatAudioUrl(lead.audio_recording)} 
+                                        style={{ height: '32px', width: '100%' }} 
                                       />
                                     : <span className="info-text">Mavjud emas</span>
                                 }
@@ -547,9 +559,7 @@ const LeadForm = ({ isOpen, onClose, lead, initialStageId, onSuccess }) => {
                                                 <audio 
                                                     controls 
                                                     controlsList="nodownload" 
-                                                    src={activity.audio_recording.startsWith('http') 
-                                                        ? activity.audio_recording 
-                                                        : `${getMediaUrl().replace(/\/media\/?$/, '')}${activity.audio_recording}`.replace(/\/+/g, '/').replace('http:/', 'http://')}
+                                                    src={formatAudioUrl(activity.audio_recording)}
                                                 />
                                             </div>
                                         )}

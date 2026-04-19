@@ -282,15 +282,19 @@ const LeadsKanban = () => {
         return () => clearTimeout(timer);
     }, [globalSearch]);
 
-    const isSuperUser = user?.role === 'admin' || user?.is_superuser;
+    const isManager = user?.is_superuser || user?.permissions?.can_view_users;
     const [archivedFilter, setArchivedFilter] = useState('active');
     const [callFilter, setCallFilter] = useState('all');
     const [selectMode, setSelectMode] = useState(false);
     const [selectedLeads, setSelectedLeads] = useState(new Set());
+    const [selectAllInDb, setSelectAllInDb] = useState(false);
     const [bulkOperator, setBulkOperator] = useState('');
+    const [bulkStage, setBulkStage] = useState('');
     const [bulkAssigning, setBulkAssigning] = useState(false);
+    const [bulkUpdatingStage, setBulkUpdatingStage] = useState(false);
 
     const toggleSelectLead = (leadId) => {
+        setSelectAllInDb(false); // Manually selecting disables "select all in DB" mode
         setSelectedLeads(prev => {
             const next = new Set(prev);
             if (next.has(leadId)) next.delete(leadId);
@@ -299,22 +303,43 @@ const LeadsKanban = () => {
         });
     };
 
-    const selectAllInColumns = () => {
-        const allIds = new Set();
-        columns.forEach(col => {
-            (col.items || []).forEach(lead => allIds.add(lead.id));
-        });
-        setSelectedLeads(allIds);
+    const selectAllInDbAction = () => {
+        setSelectAllInDb(true);
+        setSelectedLeads(new Set()); // Clear individual selections when selecting all in DB
+    };
+
+    const toggleSelectAllInDb = () => {
+        setSelectAllInDb(!selectAllInDb);
+    };
+
+    const getFilterParams = () => {
+        const params = {};
+        if (debouncedSearch) params.search = debouncedSearch;
+        if (dateFrom) params.date_from = dateFrom;
+        if (dateTo) params.date_to = dateTo;
+        if (operatorFilter !== 'all') params.operator = operatorFilter;
+        if (followUpFilter !== 'all') params.follow_up = followUpFilter;
+        if (archivedFilter === 'archived') params.archived_only = 'true';
+        if (archivedFilter === 'all') params.show_archived = 'true';
+        if (callFilter !== 'all') params.is_called = callFilter;
+        return params;
     };
 
     const handleBulkAssign = async () => {
-        if (!bulkOperator || selectedLeads.size === 0) return;
+        if (!bulkOperator || (selectedLeads.size === 0 && !selectAllInDb)) return;
         setBulkAssigning(true);
         try {
-            const res = await leadService.bulkAssign([...selectedLeads], parseInt(bulkOperator));
+            const data = {
+                operator_id: parseInt(bulkOperator),
+                lead_ids: selectAllInDb ? [] : [...selectedLeads],
+                select_all: selectAllInDb,
+                ...getFilterParams()
+            };
+            const res = await leadService.bulkAssign(data);
             toast.success(`${res.data.updated} ta lead ${res.data.operator} ga biriktirildi!`);
             setSelectMode(false);
             setSelectedLeads(new Set());
+            setSelectAllInDb(false);
             setBulkOperator('');
             loadData();
         } catch {
@@ -324,11 +349,35 @@ const LeadsKanban = () => {
         }
     };
 
+    const handleBulkUpdateStage = async () => {
+        if (!bulkStage || (selectedLeads.size === 0 && !selectAllInDb)) return;
+        setBulkUpdatingStage(true);
+        try {
+            const data = {
+                target_stage_id: parseInt(bulkStage),
+                lead_ids: selectAllInDb ? [] : [...selectedLeads],
+                select_all: selectAllInDb,
+                ...getFilterParams()
+            };
+            const res = await leadService.bulkUpdateStage(data);
+            toast.success(`${res.data.updated_count} ta lead "${res.data.target_stage}" bosqichiga o'tkazildi!`);
+            setSelectMode(false);
+            setSelectedLeads(new Set());
+            setSelectAllInDb(false);
+            setBulkStage('');
+            loadData();
+        } catch (error) {
+            toast.error(error.response?.data?.detail || 'Bosqichni o\'zgartirishda xatolik!');
+        } finally {
+            setBulkUpdatingStage(false);
+        }
+    };
+
     useEffect(() => {
         const fetchUserData = async () => {
-            if (isSuperUser) {
+            if (isManager) {
                 try {
-                    const opsRes = await getUsers();
+                    const opsRes = await getUsers({ is_operator: 'true' });
                     setOperators(opsRes.data?.results || opsRes.data || []);
                 } catch (error) {
                     console.error("Operators fetch error:", error);
@@ -336,7 +385,7 @@ const LeadsKanban = () => {
             }
         };
         fetchUserData();
-    }, [isSuperUser]);
+    }, [isManager]);
 
     useEffect(() => {
         const fetchForms = async () => {
@@ -467,11 +516,14 @@ const LeadsKanban = () => {
         try {
             const nextPage = (col.page || 1) + 1;
             const params = { stage_id: columnId, page: nextPage };
-            if (globalSearch) params.search = globalSearch;
+            if (debouncedSearch) params.search = debouncedSearch;
             if (dateFrom) params.date_from = dateFrom;
             if (dateTo) params.date_to = dateTo;
             if (operatorFilter !== 'all') params.operator = operatorFilter;
             if (followUpFilter !== 'all') params.follow_up = followUpFilter;
+            if (archivedFilter === 'archived') params.archived_only = 'true';
+            if (archivedFilter === 'all') params.show_archived = 'true';
+            if (callFilter !== 'all') params.is_called = callFilter;
 
             const res = await leadService.loadMoreKanban(params);
 
@@ -497,7 +549,7 @@ const LeadsKanban = () => {
         } finally {
             loadingMoreRef.current[columnId] = false;
         }
-    }, [columns, globalSearch, dateFrom, dateTo, operatorFilter, followUpFilter]);
+    }, [columns, debouncedSearch, dateFrom, dateTo, operatorFilter, followUpFilter, archivedFilter, callFilter]);
 
     // Ustun scroll handler
     const handleColumnScroll = useCallback((e, columnId) => {
@@ -788,7 +840,7 @@ const LeadsKanban = () => {
                     </div>
 
                     <div className="filter-group-v2">
-                        {isSuperUser && (
+                        {isManager && (
                             <select
                                 className="toolbar-select"
                                 value={operatorFilter}
@@ -842,14 +894,16 @@ const LeadsKanban = () => {
                         <span>Yangilash</span>
                     </button>
 
-                    {isSuperUser && (
+                    {isManager && (
                         <button
                             className={`btn-v2 ${selectMode ? 'btn-v2-primary' : 'btn-v2-dark'}`}
                             onClick={() => {
                                 setSelectMode(!selectMode);
                                 if (selectMode) {
                                     setSelectedLeads(new Set());
+                                    setSelectAllInDb(false);
                                     setBulkOperator('');
+                                    setBulkStage('');
                                 }
                             }}
                         >
@@ -863,32 +917,70 @@ const LeadsKanban = () => {
                 </div>
 
                 {selectMode && (
-                    <div className="bulk-assign-bar">
-                        <span className="bulk-count-badge">
-                            ✓ {selectedLeads.size} ta tanlandi
-                        </span>
-                        <button className="btn-v2 btn-v2-outline-sm" onClick={selectAllInColumns}>
-                            Barchasini tanlash
-                        </button>
-                        <select
-                            className="toolbar-select"
-                            value={bulkOperator}
-                            onChange={(e) => setBulkOperator(e.target.value)}
-                        >
-                            <option value="">Operator tanlang</option>
-                            {operators.map(op => (
-                                <option key={op.id} value={op.id}>
-                                    {op.first_name ? `${op.first_name} ${op.last_name || ''}` : op.username}
-                                </option>
-                            ))}
-                        </select>
-                        <button
-                            className="btn-v2 btn-v2-primary"
-                            onClick={handleBulkAssign}
-                            disabled={selectedLeads.size === 0 || !bulkOperator || bulkAssigning}
-                        >
-                            {bulkAssigning ? 'Bajarilmoqda...' : `Biriktirish (${selectedLeads.size})`}
-                        </button>
+                    <div className="bulk-actions-container">
+                        <div className="bulk-assign-bar">
+                            <span className="bulk-count-badge">
+                                ✓ {selectAllInDb ? stats.total : selectedLeads.size} ta tanlandi
+                            </span>
+                            
+                            {!selectAllInDb && (
+                                <button className="btn-v2 btn-v2-primary-sm" onClick={selectAllInDbAction}>
+                                    Barchasini tanlash ({stats.total})
+                                </button>
+                            )}
+
+                            {selectAllInDb && (
+                                <button className="btn-v2 btn-v2-ghost-sm active" onClick={() => setSelectAllInDb(false)}>
+                                    Tanlovni bekor qilish
+                                </button>
+                            )}
+
+                            <div className="bulk-actions-divider"></div>
+
+                            <div className="bulk-action-group">
+                                <select
+                                    className="toolbar-select"
+                                    value={bulkOperator}
+                                    onChange={(e) => setBulkOperator(e.target.value)}
+                                >
+                                    <option value="">Operatorga biriktirish</option>
+                                    {operators.map(op => (
+                                        <option key={op.id} value={op.id}>
+                                            {op.first_name ? `${op.first_name} ${op.last_name || ''}` : op.username}
+                                        </option>
+                                    ))}
+                                </select>
+                                <button
+                                    className="btn-v2 btn-v2-primary"
+                                    onClick={handleBulkAssign}
+                                    disabled={(selectedLeads.size === 0 && !selectAllInDb) || !bulkOperator || bulkAssigning}
+                                >
+                                    {bulkAssigning ? '...' : 'OK'}
+                                </button>
+                            </div>
+
+                            <div className="bulk-action-group">
+                                <select
+                                    className="toolbar-select"
+                                    value={bulkStage}
+                                    onChange={(e) => setBulkStage(e.target.value)}
+                                >
+                                    <option value="">Bosqichni o'zgartirish</option>
+                                    {columns.map(stage => (
+                                        <option key={stage.id} value={stage.id}>
+                                            {stage.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <button
+                                    className="btn-v2 btn-v2-primary"
+                                    onClick={handleBulkUpdateStage}
+                                    disabled={(selectedLeads.size === 0 && !selectAllInDb) || !bulkStage || bulkUpdatingStage}
+                                >
+                                    {bulkUpdatingStage ? '...' : 'OK'}
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 )}
 
@@ -1023,7 +1115,7 @@ const LeadsKanban = () => {
                                             onDragStart={handleDragStart}
                                             onDragEnd={handleDragEnd}
                                             selectMode={selectMode}
-                                            isSelected={selectedLeads.has(lead.id)}
+                                            isSelected={selectAllInDb || selectedLeads.has(lead.id)}
                                             onToggleSelect={toggleSelectLead}
                                         />
                                     ))}

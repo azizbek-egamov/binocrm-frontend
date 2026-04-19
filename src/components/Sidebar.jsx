@@ -176,8 +176,8 @@ const Sidebar = () => {
         return user?.permissions?.[item.permission];
     });
 
-    // Faqat superuser uchun Foydalanuvchilar menyusi
-    if (user?.is_superuser) {
+    // Foydalanuvchilar menyusi - Superuser yoki Manager (can_view_users) uchun
+    if (user?.is_superuser || user?.permissions?.can_view_users) {
         filteredMenuItems.push({
             type: 'link',
             path: '/users',

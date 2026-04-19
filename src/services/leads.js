@@ -53,6 +53,9 @@ export const leadService = {
         operator_id: operatorId
     }),
 
+    // Bulk move leads to another stage
+    bulkUpdateStage: (data) => api.post('/leads/bulk_update_stage/', data),
+
     // Lead faoliyat tarixi
     getActivities: (leadId) => api.get('/lead-activities/', { params: { lead: leadId } }),
 };
