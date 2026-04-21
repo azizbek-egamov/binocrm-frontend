@@ -233,7 +233,12 @@ const LeadsList = () => {
                                                 }}>
                                                     {lead.operator_name ? lead.operator_name[0] : '?'}
                                                 </div>
-                                                <span style={{ fontSize: '13px' }}>{lead.operator_name}</span>
+                                                <span style={{ 
+                                                    fontSize: '13px',
+                                                    color: lead.operator_name ? 'inherit' : '#ef4444'
+                                                }}>
+                                                    {lead.operator_name || "Biriktirilmagan"}
+                                                </span>
                                             </div>
                                         </td>
                                         <td style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>

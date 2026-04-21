@@ -87,7 +87,7 @@ function App() {
               <Route
                 path="/cities"
                 element={
-                  <ProtectedLayout permission="can_view_cities">
+                  <ProtectedLayout>
                     <CitiesList />
                   </ProtectedLayout>
                 }
@@ -97,7 +97,7 @@ function App() {
               <Route
                 path="/buildings/info"
                 element={
-                  <ProtectedLayout permission="can_view_buildings_info">
+                  <ProtectedLayout>
                     <BuildingInfo />
                   </ProtectedLayout>
                 }
@@ -105,7 +105,7 @@ function App() {
               <Route
                 path="/buildings"
                 element={
-                  <ProtectedLayout permission="can_view_buildings">
+                  <ProtectedLayout>
                     <BuildingsList />
                   </ProtectedLayout>
                 }
@@ -113,7 +113,7 @@ function App() {
               <Route
                 path="/buildings/create"
                 element={
-                  <ProtectedLayout permission="can_view_buildings">
+                  <ProtectedLayout>
                     <BuildingCreate />
                   </ProtectedLayout>
                 }
@@ -121,7 +121,7 @@ function App() {
               <Route
                 path="/buildings/:id/edit"
                 element={
-                  <ProtectedLayout permission="can_view_buildings">
+                  <ProtectedLayout>
                     <BuildingEdit />
                   </ProtectedLayout>
                 }
@@ -131,7 +131,7 @@ function App() {
               <Route
                 path="/homes"
                 element={
-                  <ProtectedLayout permission="can_view_homes">
+                  <ProtectedLayout>
                     <HomesList />
                   </ProtectedLayout>
                 }
@@ -139,7 +139,7 @@ function App() {
               <Route
                 path="/homes/create"
                 element={
-                  <ProtectedLayout permission="can_view_homes">
+                  <ProtectedLayout>
                     <HomeCreate />
                   </ProtectedLayout>
                 }
@@ -148,7 +148,7 @@ function App() {
               <Route
                 path="/clients"
                 element={
-                  <ProtectedLayout permission="can_view_clients">
+                  <ProtectedLayout>
                     <ClientsList />
                   </ProtectedLayout>
                 }
@@ -156,7 +156,7 @@ function App() {
               <Route
                 path="/contracts"
                 element={
-                  <ProtectedLayout permission="can_view_contracts">
+                  <ProtectedLayout>
                     <ContractsList />
                   </ProtectedLayout>
                 }
@@ -164,7 +164,7 @@ function App() {
               <Route
                 path="/contracts/create"
                 element={
-                  <ProtectedLayout permission="can_view_contracts">
+                  <ProtectedLayout>
                     <ContractCreate />
                   </ProtectedLayout>
                 }
@@ -172,7 +172,7 @@ function App() {
               <Route
                 path="/contracts/:id/edit"
                 element={
-                  <ProtectedLayout permission="can_view_contracts">
+                  <ProtectedLayout>
                     <ContractEdit />
                   </ProtectedLayout>
                 }
@@ -180,7 +180,7 @@ function App() {
               <Route
                 path="/contracts/:id/schedule"
                 element={
-                  <ProtectedLayout permission="can_view_contracts">
+                  <ProtectedLayout>
                     <ContractSchedule />
                   </ProtectedLayout>
                 }

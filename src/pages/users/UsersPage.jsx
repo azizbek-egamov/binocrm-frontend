@@ -131,7 +131,6 @@ const UsersPage = () => {
         username: '',
         first_name: '',
         last_name: '',
-        email: '',
         password: '',
         is_staff: false,
         is_superuser: false,
@@ -167,11 +166,26 @@ const UsersPage = () => {
     const applyRole = (role) => {
         setSelectedRole(role);
         if (role === ROLE_SUPERUSER) {
-            setFormData(prev => ({ ...prev, is_superuser: true, is_staff: true, permissions: { ...defaultQurilishPerms } }));
+            setFormData(prev => ({ 
+                ...prev, 
+                is_superuser: true, 
+                is_staff: true, 
+                permissions: { ...prev.permissions, is_operator: false } 
+            }));
         } else if (role === ROLE_QURILISH) {
-            setFormData(prev => ({ ...prev, is_superuser: false, is_staff: true, permissions: { ...defaultQurilishPerms } }));
+            setFormData(prev => ({ 
+                ...prev, 
+                is_superuser: false, 
+                is_staff: true, 
+                permissions: { ...defaultQurilishPerms, is_operator: false } 
+            }));
         } else {
-            setFormData(prev => ({ ...prev, is_superuser: false, is_staff: false, permissions: { ...defaultXodimPerms } }));
+            setFormData(prev => ({ 
+                ...prev, 
+                is_superuser: false, 
+                is_staff: false, 
+                permissions: { ...defaultXodimPerms } 
+            }));
         }
     };
 
@@ -181,7 +195,6 @@ const UsersPage = () => {
             username: '',
             first_name: '',
             last_name: '',
-            email: '',
             password: '',
             is_staff: false,
             is_superuser: false,
@@ -198,15 +211,19 @@ const UsersPage = () => {
     const openEditModal = (user) => {
         const role = getUserRole(user);
         setSelectedRole(role);
-        const perms = user.permissions
+        let perms = user.permissions
             ? { ...defaultXodimPerms, ...user.permissions, allowed_categories: (user.permissions.allowed_categories || []).map(c => c.id || c) }
             : (role === ROLE_QURILISH ? { ...defaultQurilishPerms } : { ...defaultXodimPerms });
+
+        // Qurilish bo'lsa operatorlikni har doim o'chiramiz
+        if (role === ROLE_QURILISH) {
+            perms.is_operator = false;
+        }
 
         setFormData({
             username: user.username,
             first_name: user.first_name || '',
             last_name: user.last_name || '',
-            email: user.email || '',
             password: '',
             is_staff: user.is_staff,
             is_superuser: user.is_superuser,
@@ -279,8 +296,7 @@ const UsersPage = () => {
 
     const filteredUsers = users.filter(u =>
         u.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        `${u.first_name} ${u.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (u.email || '').toLowerCase().includes(searchTerm.toLowerCase())
+        `${u.first_name} ${u.last_name}`.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const formatDate = (d) => {
@@ -328,7 +344,7 @@ const UsersPage = () => {
                             <SearchIcon />
                             <input
                                 type="text"
-                                placeholder="Qidirish: ism, username, email..."
+                                placeholder="Qidirish: ism, username..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
@@ -344,7 +360,6 @@ const UsersPage = () => {
                                 <tr>
                                     <th style={{ width: '50px' }}>#</th>
                                     <th>Foydalanuvchi</th>
-                                    <th>Email</th>
                                     <th>Tur</th>
                                     <th>Operator</th>
                                     <th>Holat</th>
@@ -375,7 +390,6 @@ const UsersPage = () => {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>{user.email || '—'}</td>
                                             <td>
                                                 <span className="user-role-tag" style={{ background: info.bg, color: info.color, borderColor: info.border }}>
                                                     {info.icon} {info.label}
@@ -472,11 +486,6 @@ const UsersPage = () => {
                                             <label>Familiyasi</label>
                                             <input type="text" placeholder="Familiya..." value={formData.last_name}
                                                 onChange={e => setFormData({ ...formData, last_name: e.target.value })} />
-                                        </div>
-                                        <div className="form-group form-full">
-                                            <label>Email</label>
-                                            <input type="email" placeholder="user@example.com" value={formData.email}
-                                                onChange={e => setFormData({ ...formData, email: e.target.value })} />
                                         </div>
                                     </div>
 

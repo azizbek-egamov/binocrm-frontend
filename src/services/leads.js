@@ -30,6 +30,7 @@ export const leadService = {
     getKanban: (params, config = {}) => api.get('/leads/kanban/', { params, ...config }),
     loadMoreKanban: (params, config = {}) => api.get('/leads/kanban_load_more/', { params, ...config }),
     getStatistics: (params, config = {}) => api.get('/leads/statistics/', { params, ...config }),
+    getHistory: (id) => api.get(`/leads/${id}/history/`),
 
     // Convert lead to client
     convert: (id, data) => api.post(`/leads/${id}/convert/`, data),
@@ -47,15 +48,9 @@ export const leadService = {
         responseType: 'blob'
     }),
 
-    // Bulk assign leads to operator
-    bulkAssign: (leadIds, operatorId) => api.post('/leads/bulk_assign/', {
-        lead_ids: leadIds,
-        operator_id: operatorId
-    }),
-
-    // Bulk move leads to another stage
+    // Bulk actions
+    bulkAssign: (data) => api.post('/leads/bulk_assign/', data),
     bulkUpdateStage: (data) => api.post('/leads/bulk_update_stage/', data),
 
-    // Lead faoliyat tarixi
-    getActivities: (leadId) => api.get('/lead-activities/', { params: { lead: leadId } }),
+
 };

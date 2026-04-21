@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { leadService } from '../../services/leads';
 import { getUsers } from '../../services/users';
 import api from '../../services/api';
@@ -19,7 +19,7 @@ const formatAudioUrl = (audioPath) => {
     if (!path.startsWith('/')) path = '/' + path;
 
     // Join and fix slashes (except protocol)
-    const fullUrl = `${baseUrl}${path}`.replace(/([^:])\/+/g, '$1/');
+    const fullUrl = `${baseUrl}${path}`.replace(/([^:])\/\/+/g, '$1/');
     return fullUrl;
 };
 
@@ -97,6 +97,34 @@ const LeadForm = ({ isOpen, onClose, lead, initialStageId, onSuccess }) => {
         return option ? option.label : status;
     };
 
+    const [activeTab, setActiveTab] = useState('details'); // 'details' or 'history'
+    const [history, setHistory] = useState([]);
+    const [historyLoading, setHistoryLoading] = useState(false);
+    const [selectedHistoryLead, setSelectedHistoryLead] = useState(null);
+    const currentItemRef = useRef(null);
+
+    const fetchHistory = async () => {
+        if (!lead?.id) return;
+        setHistoryLoading(true);
+        try {
+            const res = await leadService.getHistory(lead.id);
+            setHistory(res.data);
+        } catch (error) {
+            console.error("History fetch error:", error);
+        } finally {
+            setHistoryLoading(false);
+        }
+    };
+
+    // Joriy lead ko'rinib turishi uchun auto-scroll
+    useEffect(() => {
+        if (activeTab === 'history' && !historyLoading && currentItemRef.current) {
+            setTimeout(() => {
+                currentItemRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        }
+    }, [activeTab, historyLoading]);
+
     const [formData, setFormData] = useState({
         client_name: '',
         phone_number: '+998',
@@ -114,30 +142,31 @@ const LeadForm = ({ isOpen, onClose, lead, initialStageId, onSuccess }) => {
         operator: '',
     });
 
-    const [activities, setActivities] = useState([]);
-    const [activeTab, setActiveTab] = useState('details'); // 'details' or 'history'
 
-    const fetchActivities = async (id) => {
-        try {
-            const res = await leadService.getActivities(id);
-            setActivities(res.data || []);
-        } catch (error) {
-            console.error("Fetch activities error:", error);
-        }
-    };
+
+
 
     useEffect(() => {
         if (isOpen) {
+            setActiveTab('details');
+            setHistory([]);
             fetchStages();
             fetchUserInfo();
             if (isEdit && lead) {
-                fetchActivities(lead.id);
                 let hours = 0, minutes = 0, seconds = 0;
                 if (lead.call_duration) {
-                    const parts = lead.call_duration.split(':');
-                    hours = parseInt(parts[0]) || 0;
-                    minutes = parseInt(parts[1]) || 0;
-                    seconds = parseInt(parts[2]) || 0;
+                    if (typeof lead.call_duration === 'string' && lead.call_duration.includes(':')) {
+                        const parts = lead.call_duration.split(':');
+                        hours = parseInt(parts[0]) || 0;
+                        minutes = parseInt(parts[1]) || 0;
+                        seconds = parseInt(parts[2]) || 0;
+                    } else {
+                        // Agar faqat soniya ko'rinishida bo'lsa (raqam yoki string raqam)
+                        const totalSeconds = parseInt(lead.call_duration) || 0;
+                        hours = Math.floor(totalSeconds / 3600);
+                        minutes = Math.floor((totalSeconds % 3600) / 60);
+                        seconds = totalSeconds % 60;
+                    }
                 }
 
                 let followUpDate = '', followUpTime = '';
@@ -162,8 +191,6 @@ const LeadForm = ({ isOpen, onClose, lead, initialStageId, onSuccess }) => {
                     operator: (lead.operator?.id || lead.operator || '').toString(),
                 });
             } else {
-                setActivities([]);
-                setActiveTab('details');
                 setFormData({
                     client_name: '',
                     phone_number: '+998',
@@ -172,7 +199,9 @@ const LeadForm = ({ isOpen, onClose, lead, initialStageId, onSuccess }) => {
                     duration_hours: 0, duration_minutes: 0, duration_seconds: 0,
                     follow_up_date: '', follow_up_time: '',
                     audio_file: null, audio_file_name: '',
-                    notes: ''
+                    notes: '',
+                    is_considering: false,
+                    operator: '',
                 });
             }
         }
@@ -305,26 +334,28 @@ const LeadForm = ({ isOpen, onClose, lead, initialStageId, onSuccess }) => {
     };
 
     const modalFooter = (
-        <div style={{ display: 'flex', width: '100%', alignItems: 'center' }}>
-            {isEdit && (
-                <button
-                    type="button"
-                    className="btn-v2 btn-v2-danger"
-                    onClick={handleDelete}
-                    disabled={deleting}
-                >
-                    {deleting ? "O'chirilmoqda..." : "O'chirish"}
-                </button>
-            )}
-            <div style={{ flex: 1 }}></div>
-            <button type="button" className="btn-v2 btn-v2-danger-light" onClick={handleClose} style={{ marginRight: '8px' }}>
-                Bekor qilish
-            </button>
-            {activeTab === 'details' && (
-                <button type="submit" className="btn-v2 btn-v2-primary" disabled={loading} onClick={handleSubmit}>
-                    {loading ? 'Saqlanmoqda...' : (isEdit ? 'Yangilash' : 'Saqlash')}
-                </button>
-            )}
+        <div style={{ display: 'flex', width: '100%', alignItems: 'center', minHeight: '42px' }}>
+            {activeTab === 'details' ? (
+                <>
+                    {isEdit && (
+                        <button
+                            type="button"
+                            className="btn-v2 btn-v2-danger"
+                            onClick={handleDelete}
+                            disabled={deleting}
+                        >
+                            {deleting ? "O'chirilmoqda..." : "O'chirish"}
+                        </button>
+                    )}
+                    <div style={{ flex: 1 }}></div>
+                    <button type="button" className="btn-v2 btn-v2-danger-light" onClick={handleClose} style={{ marginRight: '8px' }}>
+                        Bekor qilish
+                    </button>
+                    <button type="submit" className="btn-v2 btn-v2-primary" disabled={loading} onClick={handleSubmit}>
+                        {loading ? 'Saqlanmoqda...' : (isEdit ? 'Yangilash' : 'Saqlash')}
+                    </button>
+                </>
+            ) : null}
         </div>
     );
 
@@ -344,36 +375,47 @@ const LeadForm = ({ isOpen, onClose, lead, initialStageId, onSuccess }) => {
         <Modal
             isOpen={isOpen}
             onClose={handleClose}
-            title={isEdit ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <span>Leadni tahrirlash</span>
-                    {isEdit && (
-                        <div className="lead-tabs">
-                            <button 
-                                type="button" 
-                                className={`tab-btn ${activeTab === 'details' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('details')}
-                            >
-                                Ma'lumotlar
-                            </button>
-                            <button 
-                                type="button" 
-                                className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('history')}
-                            >
-                                Tarix ({activities.length})
-                            </button>
-                        </div>
-                    )}
-                </div>
-            ) : "Lead qo'shish"}
+            title={isEdit ? "Leadni tahrirlash" : "Lead qo'shish"}
             size="lg"
             footer={modalFooter}
             contentClassName="lead-modal-content"
         >
-            {activeTab === 'details' ? (
+
+                <div className="lead-tabs">
+                    <button 
+                        type="button"
+                        className={`tab-btn ${activeTab === 'details' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('details')}
+                    >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                        Asosiy ma'lumotlar
+                    </button>
+                    {isEdit && (
+                        <button 
+                            type="button"
+                            className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
+                            onClick={() => {
+                                setActiveTab('history');
+                                fetchHistory();
+                            }}
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            Mijozni boshqa leadlari
+                        </button>
+                    )}
+                </div>
+
                 <form onSubmit={handleSubmit}>
-                    <div className="modal-form-body lead-modal-main">
+                    <div className="lead-modal-main" style={{ display: activeTab === 'details' ? 'block' : 'none' }}>
                         <div className="form-group">
                             <label>Mijoz ismi</label>
                             <input
@@ -513,71 +555,129 @@ const LeadForm = ({ isOpen, onClose, lead, initialStageId, onSuccess }) => {
                             />
                         </div>
                     </div>
-                </form>
-            ) : (
-                <div className="lead-history-container">
-                    {activities.length === 0 ? (
-                        <div className="empty-history">
-                            <p>Tarix hali mavjud emas.</p>
-                        </div>
-                    ) : (
-                        <div className="history-timeline">
-                            {activities.map((activity, index) => (
-                                <div key={activity.id} className="history-item">
-                                    <div className="history-point"></div>
-                                    <div className="history-card">
-                                        <div className="history-card-header">
-                                            <span className="h-time">{formatDateTime(activity.created_at)}</span>
-                                            {activity.operator_name && (
-                                                <span className="h-operator">@{activity.operator_name}</span>
-                                            )}
-                                        </div>
-                                        
-                                        <div className="history-card-grid">
-                                            <div className="h-data-cell">
-                                                <label>Ism</label>
-                                                <div className="h-value">{activity.client_name || "—"}</div>
-                                            </div>
-                                            {activity.stage_name && (
-                                                <div className="h-data-cell">
-                                                    <label>Status</label>
-                                                    <div className="h-value status" style={{ borderLeftColor: activity.stage_color }}>
-                                                        {activity.stage_name}
+
+                    {activeTab === 'history' && (
+                        <div className="lead-history-container">
+                            {historyLoading ? (
+                                <div className="history-loading">Yuklanmoqda...</div>
+                            ) : history.length === 0 ? (
+                                <div className="empty-history">Bu raqam bilan bog'liq boshqa lidlar topilmadi.</div>
+                            ) : (
+                                <div className="history-timeline">
+                                    {history.map(h => (
+                                        <div
+                                            key={h.id}
+                                            className={`history-item ${h.is_current ? 'history-item-current' : ''}`}
+                                            ref={h.is_current ? currentItemRef : null}
+                                        >
+                                            <div className={`history-point ${h.is_current ? 'history-point-current' : ''}`}></div>
+                                            <div className={`history-card ${h.is_current ? 'history-card-current' : ''}`}>
+                                                {h.is_current && (
+                                                    <div className="history-current-badge">Hozirgi lead</div>
+                                                )}
+                                                <div className="history-card-header">
+                                                    <div className="history-item-stage">
+                                                        <span
+                                                            className="h-value status"
+                                                            style={{ borderLeftColor: h.stage_color || '#3b82f6' }}
+                                                        >
+                                                            {h.stage_name || 'Noma\'lum'}
+                                                        </span>
+                                                        <span className="h-time">
+                                                            {new Date(h.created_at).toLocaleString('uz-UZ', {
+                                                                day: '2-digit',
+                                                                month: '2-digit',
+                                                                year: 'numeric',
+                                                                hour: '2-digit',
+                                                                minute: '2-digit'
+                                                            })}
+                                                        </span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        <span className="h-operator">{h.operator_name || 'Biriktirilmagan'}</span>
+                                                        {/* Ko'rish tugmasi — joriy bo'lmagan leadlar uchun */}
+                                                        {!h.is_current && (
+                                                            <button
+                                                                type="button"
+                                                                className="history-view-btn"
+                                                                title="Ko'rish / Tahrirlash"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setSelectedHistoryLead(h);
+                                                                }}
+                                                            >
+                                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                                    <circle cx="12" cy="12" r="3"></circle>
+                                                                </svg>
+                                                                Ko'rish
+                                                            </button>
+                                                        )}
+                                                        {isSuperUser && !h.is_current && (
+                                                            <button
+                                                                type="button"
+                                                                className="history-delete-btn"
+                                                                onClick={async (e) => {
+                                                                    e.stopPropagation();
+                                                                    if (window.confirm("Ushbu leadni o'chirib yubormoqchimisiz?")) {
+                                                                        try {
+                                                                            await leadService.delete(h.id);
+                                                                            fetchHistory();
+                                                                            toast.success("Lid o'chirildi");
+                                                                        } catch (err) {
+                                                                            toast.error("O'chirishda xatolik");
+                                                                        }
+                                                                    }
+                                                                }}
+                                                            >
+                                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                                </svg>
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
-                                            )}
-                                            {activity.call_status && (
-                                                <div className="h-data-cell">
-                                                    <label>Qo'ng'iroq</label>
-                                                    <div className="h-value">{getCallStatusLabel(activity.call_status)}</div>
+                                                <div className="history-card-grid">
+                                                    <div className="h-data-cell">
+                                                        <label>Holat</label>
+                                                        <span className={`h-value status-text ${h.call_status}`}>
+                                                            {getCallStatusLabel(h.call_status)}
+                                                        </span>
+                                                    </div>
+                                                    {h.audio_recording && (
+                                                        <div className="h-audio-section">
+                                                            <audio src={formatAudioUrl(h.audio_recording)} controls controlsList="nodownload" />
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            )}
+                                                {h.notes && (
+                                                    <div className="h-notes-section">
+                                                        <div className="h-notes-bubble">{h.notes}</div>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-
-                                        {activity.audio_recording && (
-                                            <div className="h-audio-section">
-                                                <audio 
-                                                    controls 
-                                                    controlsList="nodownload" 
-                                                    src={formatAudioUrl(activity.audio_recording)}
-                                                />
-                                            </div>
-                                        )}
-
-                                        {activity.notes && (
-                                            <div className="h-notes-section">
-                                                <div className="h-notes-bubble">
-                                                    {activity.notes}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
+                                    ))}
                                 </div>
-                            ))}
+                            )}
                         </div>
                     )}
-                </div>
-            )}
+
+                    {/* Nested Modal: tarix ichidan tanlangan lead */}
+                    {selectedHistoryLead && (
+                        <LeadForm
+                            isOpen={!!selectedHistoryLead}
+                            onClose={() => setSelectedHistoryLead(null)}
+                            lead={selectedHistoryLead}
+                            onSuccess={() => {
+                                setSelectedHistoryLead(null);
+                                fetchHistory(); // Tarixni yangilash
+                            }}
+                        />
+                    )}
+
+                </form>
         </Modal>
     );
 };

@@ -658,7 +658,8 @@ const LeadsKanban = () => {
                     return { ...col, items: (col.items || []).filter(item => item.id !== draggedLead.id) };
                 }
                 if (col.id === targetStageId) {
-                    return { ...col, items: [...(col.items || []), { ...draggedLead, stage: targetStageId }] };
+                    // Yangi lidni eng tepaga qo'shamiz (yangidan eskiga tartib bo'lgani uchun)
+                    return { ...col, items: [{ ...draggedLead, stage: targetStageId }, ...(col.items || [])] };
                 }
                 return col;
             });

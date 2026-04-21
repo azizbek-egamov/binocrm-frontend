@@ -61,14 +61,14 @@ const Sidebar = () => {
             path: '/cities',
             icon: <CityIcon />,
             label: 'Shaharlar',
-            permission: 'can_view_cities'
+            permission: null
         },
         {
             type: 'link',
             path: '/buildings',
             icon: <BuildingIcon />,
             label: 'Binolar',
-            permission: 'can_view_buildings'
+            permission: null
         },
         {
             type: 'group',
@@ -76,7 +76,7 @@ const Sidebar = () => {
             icon: <HomeAltIcon />,
             label: 'Xonadonlar',
             basePath: '/homes',
-            permission: 'can_view_homes',
+            permission: null,
             children: [
                 { path: '/homes', label: 'Xonadonlar ro\'yxati' },
                 { path: '/homes/create', label: 'Qo\'lda qo\'shish' },
@@ -87,7 +87,7 @@ const Sidebar = () => {
             path: '/clients',
             icon: <UsersIcon />,
             label: 'Mijozlar',
-            permission: 'can_view_clients'
+            permission: null
         },
         {
             type: 'group',
@@ -95,7 +95,7 @@ const Sidebar = () => {
             icon: <FileIcon />,
             label: 'Shartnomalar',
             basePath: '/contracts',
-            permission: 'can_view_contracts',
+            permission: null,
             children: [
                 { path: '/contracts', label: 'Shartnomalar ro\'yxati' },
                 { path: '/contracts/create', label: 'Shartnoma qo\'shish' },

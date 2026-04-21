@@ -83,7 +83,7 @@ export const NoData = ({ height = '300px' }) => (
  *  barRadius  - corner radius (default 4)
  *  unit       - suffix for Y axis (e.g. '%')
  */
-export const AmBarChart = ({
+const AmBarChartBase = ({
     data = [], xField, yField, height = 300,
     horizontal = false, color = '#6366f1', colors,
     seriesNames, tooltipFormatter,
@@ -224,26 +224,34 @@ export const AmBarChart = ({
  *  tooltipText- custom tooltip format
  *  showLine   - show as line only (no fill) default false
  */
-export const AmAreaChart = ({
+const AmAreaChartBase = ({
     data = [], xField, yField, height = 300,
     color = '#6366f1', tooltipText, showLine = false,
+    initialZoomDays = null
 }) => {
     const ref = useRef(null);
     useLayoutEffect(() => {
         if (!ref.current || !data.length) return;
         const root = setupRoot(ref.current);
         const chart = root.container.children.push(am5xy.XYChart.new(root, {
-            panX: false, panY: false, wheelY: 'none',
-            paddingLeft: 0, paddingRight: 10,
+            panX: true, panY: false, 
+            wheelX: 'panX', wheelY: 'zoomX',
+            paddingLeft: 0, paddingRight: 20,
         }));
 
-        const xAxis = chart.xAxes.push(am5xy.CategoryAxis.new(root, {
-            categoryField: xField,
-            renderer: am5xy.AxisRendererX.new(root, { minGridDistance: 50 }),
+        // Date Axis
+        const xAxis = chart.xAxes.push(am5xy.DateAxis.new(root, {
+            maxDeviation: 0.1,
+            baseInterval: { timeUnit: 'day', count: 1 },
+            renderer: am5xy.AxisRendererX.new(root, { 
+                minGridDistance: 60,
+                minorGridEnabled: true
+            }),
+            tooltip: am5.Tooltip.new(root, {})
         }));
-        xAxis.get('renderer').labels.template.setAll({ fontSize: 11, rotation: 0 });
-        xAxis.get('renderer').grid.template.setAll({ visible: false });
-        xAxis.data.setAll(data);
+
+        xAxis.get('renderer').labels.template.setAll({ fontSize: 11 });
+        xAxis.get('renderer').grid.template.setAll({ strokeDasharray: [3, 3], strokeOpacity: 0.2 });
 
         const yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root, {
             renderer: am5xy.AxisRendererY.new(root, {}),
@@ -253,13 +261,17 @@ export const AmAreaChart = ({
         yAxis.get('renderer').grid.template.setAll({ strokeDasharray: [3, 3], strokeOpacity: 0.3 });
 
         const series = chart.series.push(am5xy.LineSeries.new(root, {
+            name: 'Leads',
             valueYField: yField,
-            categoryXField: xField,
+            valueXField: xField,
             xAxis, yAxis,
             tooltip: am5.Tooltip.new(root, {
-                labelText: fixNL(tooltipText) || `{categoryX}: {valueY}`,
+                pointerOrientation: 'horizontal',
+                labelText: fixNL(tooltipText) || `{valueX.formatDate('dd MMM, yyyy')}: {valueY}`,
             }),
         }));
+
+        // Smoothing and styling
         series.strokes.template.setAll({ strokeWidth: 3, stroke: am5.color(color) });
         series.set('stroke', am5.color(color));
         series.set('fill', am5.color(color));
@@ -278,7 +290,12 @@ export const AmAreaChart = ({
             });
         }
 
-        // Bullets (dots)
+        // Data grouping for long timelines
+        series.set("listData", data);
+        xAxis.set("groupData", true);
+        xAxis.set("groupCount", 100);
+
+        // Bullets
         series.bullets.push(() =>
             am5.Bullet.new(root, {
                 sprite: am5.Circle.new(root, {
@@ -289,13 +306,36 @@ export const AmAreaChart = ({
             })
         );
 
-        series.data.setAll(data);
-        series.appear(800);
+        // Date format handling
+        const chartData = data.map(item => ({
+            ...item,
+            [xField]: new Date(item[xField]).getTime()
+        })).sort((a, b) => a[xField] - b[xField]);
 
-        chart.set('cursor', am5xy.XYCursor.new(root, { behavior: 'none' }));
+        series.data.setAll(chartData);
+        xAxis.data.setAll(chartData);
+
+        // Initial Zoom logic
+        if (initialZoomDays && chartData.length > 0) {
+            const lastDate = chartData[chartData.length - 1][xField];
+            const firstDate = lastDate - (initialZoomDays * 24 * 60 * 60 * 1000);
+            
+            xAxis.events.once("datavalidated", () => {
+                xAxis.zoomToDates(new Date(firstDate), new Date(lastDate));
+            });
+        }
+
+        // Scrollbar
+        chart.set("scrollbarX", am5.Scrollbar.new(root, {
+            orientation: "horizontal",
+            height: 8
+        }));
+
+        series.appear(800);
         chart.appear(800, 100);
+
         return () => root.dispose();
-    }, [data, xField, yField, color, showLine, tooltipText]);
+    }, [data, xField, yField, color, showLine, tooltipText, initialZoomDays]);
 
     return (
         <ErrorBoundary height={`${height}px`}>
@@ -312,7 +352,7 @@ export const AmAreaChart = ({
 // ════════════════════════════════════════════════
 //  AmLineChart
 // ════════════════════════════════════════════════
-export const AmLineChart = (props) => <AmAreaChart {...props} showLine={true} />;
+const AmLineChartBase = (props) => <AmAreaChartBase {...props} showLine={true} />;
 
 
 // ════════════════════════════════════════════════
@@ -328,7 +368,7 @@ export const AmLineChart = (props) => <AmAreaChart {...props} showLine={true} />
  *  colors      - custom color array
  *  legendPosition - 'bottom' | 'right' (default 'bottom')
  */
-export const AmPieChart = ({
+const AmPieChartBase = ({
     data = [], nameField = 'name', valueField = 'value',
     height = 280, innerRadius = 55, colors,
     legendPosition = 'bottom',
@@ -412,7 +452,7 @@ export const AmPieChart = ({
  *  height     - px (default 300)
  *  lineYAxisFormat - format for secondary Y axis (e.g. "#'%'")
  */
-export const AmComposedChart = ({
+const AmComposedChartBase = ({
     data = [], xField, barFields = [], lineField,
     height = 300, lineYAxisFormat = "#'%'",
 }) => {
@@ -528,3 +568,9 @@ export const AmComposedChart = ({
         </ErrorBoundary>
     );
 };
+
+export const AmBarChart = React.memo(AmBarChartBase);
+export const AmAreaChart = React.memo(AmAreaChartBase);
+export const AmPieChart = React.memo(AmPieChartBase);
+export const AmLineChart = React.memo(AmLineChartBase);
+export const AmComposedChart = React.memo(AmComposedChartBase);
