@@ -83,7 +83,13 @@ const BuildingsList = () => {
     try {
       const data = await getCities({ page_size: 1000 });
       const citiesList = data.results || data;
-      setCities(Array.isArray(citiesList) ? citiesList : []);
+      const list = Array.isArray(citiesList) ? citiesList : [];
+      setCities(list);
+      
+      // Agar faqat bitta shahar bo'lsa, uni avtomatik tanlash
+      if (list.length === 1 && !cityFilter) {
+        setCityFilter(list[0].id.toString());
+      }
     } catch (error) {
       console.error("Shaharlarni yuklashda xatolik:", error);
     }

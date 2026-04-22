@@ -58,7 +58,13 @@ const BuildingInfo = () => {
   const loadCities = async () => {
     try {
       const data = await getAllCities();
-      setCities(data);
+      const list = Array.isArray(data) ? data : (data.results || []);
+      setCities(list);
+      
+      // Avtomatik tanlash
+      if (list.length === 1 && !selectedCityId) {
+        setSelectedCityId(list[0].id.toString());
+      }
     } catch {
       toast.error("Shaharlarni yuklashda xatolik");
     }
@@ -79,11 +85,27 @@ const BuildingInfo = () => {
   const loadBuildings = async () => {
     try {
       const data = await getAllBuildings({ city: selectedCityId });
-      setBuildings(data);
+      const list = Array.isArray(data) ? data : (data.results || []);
+      setBuildings(list);
+      
+      // Avtomatik tanlash
+      if (list.length === 1 && !selectedBuildingId) {
+        setSelectedBuildingId(list[0].id.toString());
+      }
     } catch {
       toast.error("Binolarni yuklashda xatolik");
     }
   };
+
+  // Shahar o'zgarganda binolarni avtomatik tekshirish
+  useEffect(() => {
+    if (selectedCityId && buildings.length > 0) {
+      const filtered = buildings.filter(b => b.city === parseInt(selectedCityId));
+      if (filtered.length === 1 && !selectedBuildingId) {
+        setSelectedBuildingId(filtered[0].id.toString());
+      }
+    }
+  }, [selectedCityId, buildings]);
 
   // Load homes when building changes
   useEffect(() => {

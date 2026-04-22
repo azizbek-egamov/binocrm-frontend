@@ -22,7 +22,16 @@ const BuildingSelector = ({ onSelect, selectedData }) => {
     const loadCities = async () => {
         try {
             const response = await api.get('/cities/');
-            setCities(response.data.results || response.data);
+            const list = response.data.results || response.data;
+            setCities(list);
+            
+            // Avtomatik tanlash
+            if (list.length === 1 && !selectedData.cityId) {
+                onSelect({
+                    ...selectedData,
+                    cityId: list[0].id.toString()
+                });
+            }
         } catch (error) {
             console.error("Error loading cities:", error);
             toast.error("Shaharlarni yuklashda xatolik");
@@ -33,7 +42,20 @@ const BuildingSelector = ({ onSelect, selectedData }) => {
         try {
             setLoading(true);
             const response = await api.get('/buildings/', { params: { city: cityId } });
-            setBuildings(response.data.results || response.data);
+            const list = response.data.results || response.data;
+            setBuildings(list);
+            
+            // Avtomatik tanlash
+            if (list.length === 1 && !selectedData.buildingId) {
+                const building = list[0];
+                onSelect({
+                    ...selectedData,
+                    cityId: String(cityId),
+                    buildingId: building.id,
+                    buildingName: building.name,
+                    buildingData: building
+                });
+            }
         } catch (error) {
             console.error("Error loading buildings:", error);
             toast.error("Binolarni yuklashda xatolik");
@@ -41,6 +63,22 @@ const BuildingSelector = ({ onSelect, selectedData }) => {
             setLoading(false);
         }
     };
+
+    // Shahar tanlanganda va binolar mavjud bo'lganda avtomatik bino tanlash
+    useEffect(() => {
+        if (selectedData.cityId && buildings.length > 0) {
+            const filtered = buildings.filter(b => b.city === parseInt(selectedData.cityId));
+            if (filtered.length === 1 && !selectedData.buildingId) {
+                const building = filtered[0];
+                onSelect({
+                    ...selectedData,
+                    buildingId: building.id,
+                    buildingName: building.name,
+                    buildingData: building
+                });
+            }
+        }
+    }, [selectedData.cityId, buildings]);
 
     const handleCityChange = (e) => {
         const cityId = e.target.value;

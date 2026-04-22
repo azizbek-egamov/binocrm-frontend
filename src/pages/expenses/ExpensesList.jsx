@@ -71,8 +71,14 @@ const ExpensesList = () => {
                 buildingsService.getAllBuildings(),
                 expensesService.getCategories({ active_only: 'true' })
             ]);
-            setBuildings(buildingsData);
+            const buildingsList = Array.isArray(buildingsData) ? buildingsData : (buildingsData.results || []);
+            setBuildings(buildingsList);
             setCategories(categoriesData);
+
+            // Avtomatik tanlash
+            if (buildingsList.length === 1 && !buildingFilter) {
+                setBuildingFilter(buildingsList[0].id.toString());
+            }
 
             if (user?.is_superuser) {
                 try {

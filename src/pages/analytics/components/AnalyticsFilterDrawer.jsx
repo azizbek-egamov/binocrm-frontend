@@ -11,7 +11,8 @@ const AnalyticsFilterDrawer = ({
     cities,
     buildings,
     stages,
-    operators
+    operators,
+    isAdmin
 }) => {
     const [filters, setFilters] = useState(initialFilters);
     const [closing, setClosing] = useState(false);
@@ -167,7 +168,8 @@ const AnalyticsFilterDrawer = ({
                             </>
                         ) : (
                             <>
-                                {/* Operator Section */}
+                                {/* Operator Section - faqat adminlar uchun */}
+                                {isAdmin && (
                                 <div className="form-group">
                                     <label>Operator bo'yicha</label>
                                     <select name="operator" value={filters.operator} onChange={handleChange}>
@@ -177,6 +179,7 @@ const AnalyticsFilterDrawer = ({
                                         ))}
                                     </select>
                                 </div>
+                                )}
 
                                 {/* Stage Section */}
                                 <div className="form-group">

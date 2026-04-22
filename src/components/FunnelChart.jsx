@@ -18,7 +18,8 @@ const FunnelChart = ({ items = [], title, icon, height = 400 }) => {
     const chartRef = useRef(null);
     const rootRef = useRef(null);
 
-    const validItems = (items || []).filter(item => (item.count || 0) > 0);
+    const validItems = (items || [])
+        .filter(item => (item.count || 0) > 0);
     const hasData = validItems.length > 0;
 
     useLayoutEffect(() => {
@@ -52,14 +53,14 @@ const FunnelChart = ({ items = [], title, icon, height = 400 }) => {
         const minVal = Math.min(...validItems.map(i => i.count || 0));
         const hasDisparity = maxVal > 0 && (minVal / maxVal) < 0.05;
 
-        // Create series with aligned (external) labels when disparity is large
+        // Create series - Classic Funnel
         const series = chart.series.push(
             am5percent.FunnelSeries.new(root, {
-                alignLabels: hasDisparity,
+                alignLabels: true,
                 orientation: 'vertical',
                 valueField: 'value',
                 categoryField: 'category',
-                bottomRatio: 0.15,
+                bottomRatio: 0, // Uchburchak shakli uchun 0 qilinadi
             })
         );
 
@@ -78,32 +79,22 @@ const FunnelChart = ({ items = [], title, icon, height = 400 }) => {
             scale: 1.02,
         });
 
-        // Labels: external when disparity exists, inside when slices are balanced
-        if (hasDisparity) {
-            series.labels.template.setAll({
-                fontSize: 12,
-                fontWeight: '600',
-                fill: am5.color(isDark ? 0xe2e8f0 : 0x334155),
-                text: "{category}: {value} ta",
-                populateText: true,
-            });
-            // Style tick lines connecting labels to slices
-            series.ticks.template.setAll({
-                stroke: am5.color(isDark ? 0x475569 : 0xcbd5e1),
-                strokeWidth: 1,
-                strokeDasharray: [3, 3],
-            });
-        } else {
-            series.labels.template.setAll({
-                fontSize: 13,
-                fontWeight: '600',
-                fill: am5.color(0xffffff),
-                text: "{category}: {value} ta",
-                textAlign: 'center',
-                populateText: true,
-            });
-            series.ticks.template.setAll({ forceHidden: true });
-        }
+        // Labels style
+        series.labels.template.setAll({
+            fontSize: 13,
+            fontWeight: '700',
+            fill: am5.color(isDark ? 0xf8fafc : 0x1e293b),
+            text: "{category}: {realValue} ta",
+            populateText: true,
+            paddingLeft: 20
+        });
+
+        // Ticks style
+        series.ticks.template.setAll({
+            stroke: am5.color(isDark ? 0x94a3b8 : 0x64748b),
+            strokeWidth: 2,
+            strokeOpacity: 0.6
+        });
 
         // Map data – apply minimum value for visual balance if huge disparity
         const minVisual = hasDisparity ? Math.max(1, Math.round(maxVal * 0.04)) : 0;
@@ -153,37 +144,38 @@ const FunnelChart = ({ items = [], title, icon, height = 400 }) => {
         // Set data
         series.data.setAll(chartData);
 
-        // Legend - use real values
-        const legend = chart.children.push(
-            am5.Legend.new(root, {
-                centerX: am5.p50,
-                x: am5.p50,
-                marginTop: 10,
-                marginBottom: 5,
-            })
-        );
+        /* Legend olib tashlandi, chunki yozuvlar chart yonida ko'rsatilgan */
+        // const legend = chart.children.push(
+        //     am5.Legend.new(root, {
+        //         centerX: am5.p50,
+        //         x: am5.p50,
+        //         marginTop: 10,
+        //         marginBottom: 5,
+        //     })
+        // );
 
-        legend.labels.template.setAll({
-            fontSize: 12,
-            fill: am5.color(isDark ? 0xcbd5e1 : 0x475569),
-        });
+        // legend.labels.template.setAll({
+        //     fontSize: 12,
+        //     fill: am5.color(isDark ? 0xcbd5e1 : 0x475569),
+        // });
 
-        legend.valueLabels.template.setAll({
-            fontSize: 12,
-            fontWeight: '600',
-            fill: am5.color(isDark ? 0xf1f5f9 : 0x0f172a),
-        });
+        // legend.valueLabels.template.setAll({
+        //     fontSize: 12,
+        //     fontWeight: '600',
+        //     fill: am5.color(isDark ? 0xf1f5f9 : 0x0f172a),
+        // });
 
-        // Override legend value text to show real values
-        legend.valueLabels.template.adapters.add('text', (text, target) => {
-            const d = target.dataItem?.dataContext;
-            if (d?.dataContext?.realValue !== undefined) {
-                return String(d.dataContext.realValue);
-            }
-            return text;
-        });
+        // // Override legend value text to show real values
+        // legend.valueLabels.template.adapters.add('text', (text, target) => {
+        //     const d = target.dataItem?.dataContext;
+        //     if (d?.dataContext?.realValue !== undefined) {
+        //         return String(d.dataContext.realValue);
+        //     }
+        //     return text;
+        // });
 
-        legend.data.setAll(series.dataItems);
+        // legend.data.setAll(series.dataItems);
+
 
         // Animate
         series.appear(1000, 100);

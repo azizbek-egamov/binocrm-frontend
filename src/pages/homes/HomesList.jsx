@@ -84,7 +84,13 @@ const HomesList = () => {
         try {
             const data = await getCities({ page_size: 1000 });
             const citiesList = data.results || data;
-            setCities(Array.isArray(citiesList) ? citiesList : []);
+            const list = Array.isArray(citiesList) ? citiesList : [];
+            setCities(list);
+            
+            // Avtomatik tanlash
+            if (list.length === 1 && !filters.city) {
+                handleFilterChange('city', list[0].id.toString());
+            }
         } catch (error) {
             console.error(error);
         }
@@ -94,11 +100,30 @@ const HomesList = () => {
         try {
             const data = await getBuildings({ page_size: 1000 });
             const buildingsList = data.results || data;
-            setBuildings(Array.isArray(buildingsList) ? buildingsList : []);
+            const list = Array.isArray(buildingsList) ? buildingsList : [];
+            setBuildings(list);
+            
+            // Agar shahar tanlangan bo'lsa va shu shaharda bitta bino bo'lsa
+            if (filters.city) {
+                const filtered = list.filter(b => b.city?.id?.toString() === filters.city || b.city === parseInt(filters.city));
+                if (filtered.length === 1 && !filters.building) {
+                    handleFilterChange('building', filtered[0].id.toString());
+                }
+            }
         } catch (error) {
             console.error(error);
         }
     };
+
+    // Shahar o'zgarganda binolarni tekshirish
+    useEffect(() => {
+        if (filters.city && buildings.length > 0) {
+            const filtered = buildings.filter(b => b.city?.id?.toString() === filters.city || b.city === parseInt(filters.city));
+            if (filtered.length === 1 && !filters.building) {
+                handleFilterChange('building', filtered[0].id.toString());
+            }
+        }
+    }, [filters.city, buildings]);
 
     const loadHomes = async () => {
         setLoading(true);

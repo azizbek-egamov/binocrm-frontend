@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   TrendingUp,
   Users,
@@ -24,6 +24,7 @@ import { analyticsService } from "../../services/analytics";
 import { getAllCities } from "../../services/cities";
 import { getAllBuildings } from "../../services/buildings";
 import { leadService } from "../../services/leads";
+import { useAuth } from "../../context/AuthContext";
 import { toast } from "sonner";
 import FunnelChart from "../../components/FunnelChart";
 import {
@@ -168,8 +169,10 @@ const AnalyticsPage = () => {
   const [stats, setStats] = useState(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const themeColors = useThemeColors();
+  const { user } = useAuth();
 
-
+  // Rol tekshiruvi: admin yoki foydalanuvchilar bo'limiga kirish huquqi bor
+  const isAdmin = user?.is_superuser || user?.permissions?.can_view_users;
 
   // Sales filters
   const [salesFilters, setSalesFilters] = useState({
@@ -579,15 +582,57 @@ const SalesDashboard = React.memo(({ stats, formatNumber, STATUS_LABELS }) => {
   );
 });
 
-// ============== LEADS DASHBOARD COMPONENT ==============
-const LeadsDashboard = React.memo(({ stats, STATUS_LABELS, COLORS, themeColors, stages }) => {
+const LeadsDashboard = React.memo(({ stats, STATUS_LABELS, COLORS, themeColors, stages, isAdmin }) => {
   const [visibleInfos, setVisibleInfos] = useState({});
+  const [funnelSort, setFunnelSort] = useState("count"); // "count" yoki "stage"
+
   const toggleInfo = React.useCallback((id) => {
     setVisibleInfos(prev => ({ ...prev, [id]: !prev[id] }));
   }, []);
 
   if (!stats) return null;
   const { kpi } = stats;
+
+  // --- MEMOIZED DATA TO PREVENT RE-RENDERS ---
+  const dailyLeadsData = useMemo(() => 
+    (stats.daily_leads || []).map(d => ({
+      ...d,
+      date: d.date ? String(d.date).split('T')[0] : d.date,
+    })), [stats.daily_leads]);
+
+  const sourceData = useMemo(() => stats.by_source || [], [stats.by_source]);
+  const formData = useMemo(() => stats.by_form || [], [stats.by_form]);
+  
+  const callStatusData = useMemo(() => 
+    (stats.call_status_distribution || []).map(d => ({
+      name: STATUS_LABELS[d.call_status] || d.call_status || "Noma'lum",
+      count: d.count,
+    })), [stats.call_status_distribution, STATUS_LABELS]);
+
+  const stageDistData = useMemo(() => 
+    (stats.current_stage_counts || []).map(d => ({
+      name: d.stage_name || "Noma'lum",
+      count: d.count,
+    })), [stats.current_stage_counts]);
+
+  const funnelItems = useMemo(() => {
+    return (stats.lead_funnel || [])
+      .filter(d => d.count > 0 && d.stage !== 'Barcha leadlar')
+      .sort((a, b) => {
+        if (funnelSort === 'count') {
+          return b.count - a.count;
+        } else {
+          const stageA = stages.find(s => s.name === a.stage);
+          const stageB = stages.find(s => s.name === b.stage);
+          return (stageA?.order || 0) - (stageB?.order || 0);
+        }
+      })
+      .map((d, i) => ({
+        name: d.stage,
+        count: d.count,
+        color: d.color || COLORS[i % COLORS.length],
+      }));
+  }, [stats.lead_funnel, funnelSort, stages, COLORS]);
 
   return (
     <div className="analytics-dashboard">
@@ -643,19 +688,71 @@ const LeadsDashboard = React.memo(({ stats, STATUS_LABELS, COLORS, themeColors, 
             infoVisible={visibleInfos.lead_pipeline}
             toggleInfo={toggleInfo}
           >
-            <div style={{ display: "flex", justifyContent: "center", padding: "20px 0" }}>
+            <div className="funnel-header-actions" style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              marginBottom: '12px',
+              padding: '0 20px'
+            }}>
+              <div className="total-leads-badge" style={{
+                fontSize: '13px',
+                fontWeight: '600',
+                color: 'var(--text-secondary)',
+                background: 'rgba(99, 102, 241, 0.1)',
+                padding: '4px 12px',
+                borderRadius: '20px',
+                border: '1px solid rgba(99, 102, 241, 0.2)'
+              }}>
+                Jami: <span style={{ color: 'var(--accent-primary)' }}>{kpi.total_leads} ta lead</span>
+              </div>
+              <div className="funnel-sort-controls" style={{ 
+                display: 'flex', 
+                gap: '8px', 
+              }}>
+                <button 
+                  className={`btn-mini ${funnelSort === 'count' ? 'active' : ''}`}
+                  onClick={() => setFunnelSort('count')}
+                  style={{
+                    background: funnelSort === 'count' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                    color: funnelSort === 'count' ? 'white' : 'var(--text-secondary)',
+                    border: 'none',
+                    borderRadius: '6px',
+                    padding: '6px 14px',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Ko'pdan kamga
+                </button>
+                <button 
+                  className={`btn-mini ${funnelSort === 'stage' ? 'active' : ''}`}
+                  onClick={() => setFunnelSort('stage')}
+                  style={{
+                    background: funnelSort === 'stage' ? 'var(--accent-primary)' : 'var(--bg-tertiary)',
+                    color: funnelSort === 'stage' ? 'white' : 'var(--text-secondary)',
+                    border: 'none',
+                    borderRadius: '6px',
+                    padding: '6px 14px',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Bosqich tartibi
+                </button>
+              </div>
+            </div>
+            <div style={{ display: "flex", justifyContent: "center", padding: "0 0 20px 0" }}>
               <FunnelChart
-                items={stats.lead_funnel.filter(d => d.count > 0).map((d, i) => ({
-                    name: d.stage,
-                    count: d.count,
-                    color: d.color || [
-                      "#6366f1", "#3b82f6", "#10b981", "#f59e0b",
-                      "#8b5cf6", "#ef4444", "#06b6d4", "#ec4899",
-                    ][i % 8],
-                  }))}
-                height={350}
+                items={funnelItems}
+                height={500}
               />
             </div>
+
           </ChartWrapper>
         )}
 
@@ -668,10 +765,7 @@ const LeadsDashboard = React.memo(({ stats, STATUS_LABELS, COLORS, themeColors, 
           toggleInfo={toggleInfo}
         >
           <AmAreaChart
-            data={(stats.daily_leads || []).map(d => ({
-                ...d,
-                date: d.date ? String(d.date).split('T')[0] : d.date,
-              }))}
+            data={dailyLeadsData}
             xField="date"
             yField="count"
             height={250}
@@ -708,6 +802,7 @@ const LeadsDashboard = React.memo(({ stats, STATUS_LABELS, COLORS, themeColors, 
         </ChartWrapper>
 
         {/* ═══ 4: OPERATOR SCORECARD ═══ */}
+        {isAdmin && (
         <ChartWrapper 
           id="operator_scorecard" 
           number="4" 
@@ -762,8 +857,10 @@ const LeadsDashboard = React.memo(({ stats, STATUS_LABELS, COLORS, themeColors, 
             </table>
           </div>
         </ChartWrapper>
+        )}
 
         {/* ═══ 5A: OPERATOR REYTINGI ═══ */}
+        {isAdmin && (
         <ChartWrapper 
           id="conversion_rating" 
           number="5" 
@@ -806,8 +903,10 @@ const LeadsDashboard = React.memo(({ stats, STATUS_LABELS, COLORS, themeColors, 
                 })}
           </div>
         </ChartWrapper>
+        )}
 
         {/* ═══ 5B: OPERATOR VORONKASI ═══ */}
+        {isAdmin && (
         <ChartWrapper 
           id="op_funnel" 
           number="6" 
@@ -822,6 +921,7 @@ const LeadsDashboard = React.memo(({ stats, STATUS_LABELS, COLORS, themeColors, 
             themeColors={themeColors}
           />
         </ChartWrapper>
+        )}
 
         {/* ═══ 6A: MANBA BO'YICHA ═══ */}
         <ChartWrapper 
@@ -832,7 +932,7 @@ const LeadsDashboard = React.memo(({ stats, STATUS_LABELS, COLORS, themeColors, 
           toggleInfo={toggleInfo}
         >
           <HorizontalBar
-            data={stats.by_source || []}
+            data={sourceData}
             nameField="name"
             valueField="count"
             color="#06b6d4"
@@ -848,7 +948,7 @@ const LeadsDashboard = React.memo(({ stats, STATUS_LABELS, COLORS, themeColors, 
           toggleInfo={toggleInfo}
         >
           <HorizontalBar
-            data={stats.by_form || []}
+            data={formData}
             nameField="name"
             valueField="count"
             color="#ec4899"
@@ -864,10 +964,7 @@ const LeadsDashboard = React.memo(({ stats, STATUS_LABELS, COLORS, themeColors, 
           toggleInfo={toggleInfo}
         >
           <HorizontalBar
-            data={(stats.call_status_distribution || []).map(d => ({
-                name: STATUS_LABELS[d.call_status] || d.call_status || "Noma'lum",
-                count: d.count,
-              }))}
+            data={callStatusData}
             nameField="name"
             valueField="count"
             color="#f59e0b"
@@ -883,10 +980,7 @@ const LeadsDashboard = React.memo(({ stats, STATUS_LABELS, COLORS, themeColors, 
           toggleInfo={toggleInfo}
         >
           <HorizontalBar
-            data={(stats.current_stage_counts || []).map((d, i) => ({
-                name: d.stage_name || "Noma'lum",
-                count: d.count,
-              }))}
+            data={stageDistData}
             nameField="name"
             valueField="count"
             color="#8b5cf6"
@@ -957,6 +1051,7 @@ const LeadsDashboard = React.memo(({ stats, STATUS_LABELS, COLORS, themeColors, 
                 COLORS={COLORS}
                 themeColors={themeColors}
                 stages={stages}
+                isAdmin={isAdmin}
               />
             )}
           </>
@@ -973,7 +1068,8 @@ const LeadsDashboard = React.memo(({ stats, STATUS_LABELS, COLORS, themeColors, 
         buildings={buildings}
         stages={stages}
         operators={operators}
-        onFilter={async (newFilters) => {
+        isAdmin={isAdmin}
+        onFilter={useCallback(async (newFilters) => {
           setLoading(true);
           try {
             if (activeTab === "sales") {
@@ -999,7 +1095,7 @@ const LeadsDashboard = React.memo(({ stats, STATUS_LABELS, COLORS, themeColors, 
           } finally {
             setLoading(false);
           }
-        }}
+        }, [activeTab])}
       />
     </div>
   );

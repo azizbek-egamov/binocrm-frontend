@@ -20,12 +20,29 @@ const ContractFilterDrawer = ({
                 api.get('/cities/'),
                 api.get('/buildings/')
             ]);
-            setCities(citiesRes.data.results || citiesRes.data);
-            setBuildings(buildingsRes.data.results || buildingsRes.data);
+            const citiesList = citiesRes.data.results || citiesRes.data;
+            const buildingsList = buildingsRes.data.results || buildingsRes.data;
+            setCities(citiesList);
+            setBuildings(buildingsList);
+
+            // Avtomatik tanlash - Shahar
+            if (citiesList.length === 1 && !filters.city) {
+                setFilters(prev => ({ ...prev, city: citiesList[0].id.toString() }));
+            }
         } catch (error) {
             console.error("Error fetching filter options:", error);
         }
     };
+
+    // Shahar o'zgarganda yoki binolar yuklanganda avtomatik bino tanlash
+    useEffect(() => {
+        if (filters.city && buildings.length > 0) {
+            const filtered = buildings.filter(b => b.city === parseInt(filters.city));
+            if (filtered.length === 1 && !filters.building) {
+                setFilters(prev => ({ ...prev, building: filtered[0].id.toString() }));
+            }
+        }
+    }, [filters.city, buildings]);
 
     useEffect(() => {
         if (isOpen) {

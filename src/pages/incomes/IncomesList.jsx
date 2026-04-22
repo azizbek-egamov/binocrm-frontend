@@ -66,8 +66,14 @@ const IncomesList = () => {
             const bData = buildingsRes.results || buildingsRes;
             const cData = categoriesRes.results || categoriesRes;
             
-            setBuildings(Array.isArray(bData) ? bData.filter(b => !b.is_archived) : []);
+            const buildingsList = Array.isArray(bData) ? bData.filter(b => !b.is_archived) : [];
+            setBuildings(buildingsList);
             setCategories(Array.isArray(cData) ? cData : []);
+
+            // Avtomatik tanlash
+            if (buildingsList.length === 1 && !buildingFilter) {
+                setBuildingFilter(buildingsList[0].id.toString());
+            }
         } catch (err) {
             toast.error("Ma'lumotlarni yuklashda xatolik");
         }
