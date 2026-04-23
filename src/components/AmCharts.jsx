@@ -408,6 +408,16 @@ const AmPieChartBase = ({
             cornerRadius: 4,
             tooltipText: '{category}: {value}',
         });
+
+        // Tooltip wrapping
+        const tooltip = series.get('tooltip');
+        if (tooltip) {
+            tooltip.label.setAll({
+                maxWidth: 200,
+                oversizedBehavior: 'wrap'
+            });
+        }
+
         series.slices.template.states.create('hover', { scale: 1.05 });
 
         series.data.setAll(data);
@@ -419,7 +429,11 @@ const AmPieChartBase = ({
             marginTop: legendPosition === 'right' ? 0 : 10,
             layout: legendPosition === 'right' ? root.verticalLayout : root.gridLayout,
         }));
-        legend.labels.template.setAll({ fontSize: 11 });
+        legend.labels.template.setAll({ 
+            fontSize: 11, 
+            maxWidth: 150, 
+            oversizedBehavior: 'wrap' 
+        });
         legend.valueLabels.template.setAll({ fontSize: 11, fontWeight: '600' });
         legend.data.setAll(series.dataItems);
 

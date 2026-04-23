@@ -31,6 +31,9 @@ const Dashboard = () => {
         return new Intl.NumberFormat('uz-UZ').format(val) + " so'm";
     };
 
+    const canViewIncomes = user?.is_superuser || user?.permissions?.can_view_incomes;
+    const canViewExpenses = user?.is_superuser || user?.permissions?.can_view_expenses;
+
     const stats = [
         { label: 'Binolar', value: summary?.buildings_count || '0', color: 'primary', icon: 'building' },
         { label: 'Uylar', value: summary?.homes_count || '0', color: 'success', icon: 'home' },
@@ -296,112 +299,120 @@ const Dashboard = () => {
             </section>
 
             {/* Incomes Section */}
-            <div className="section-title">Kirimlar tahlili</div>
-            <section className="charts-grid-layout charts-three-col" style={{ marginBottom: '40px' }}>
-                {/* Daily Incomes Trend */}
-                <div className="chart-card">
-                    <div className="chart-header">
-                        <h3>Kunlik tushumlar trendi</h3>
-                    </div>
-                    <div className="chart-container">
-                        <AmAreaChart
-                            data={summary?.incomes?.daily_trend || []}
-                            xField="date"
-                            yField="amount"
-                            height={250}
-                            color="#10b981"
-                            tooltipText="Sana: {categoryX}\nTushum: {valueY}"
-                        />
-                    </div>
-                </div>
+            {canViewIncomes && (
+                <>
+                    <div className="section-title">Kirimlar tahlili</div>
+                    <section className="charts-grid-layout charts-three-col" style={{ marginBottom: '40px' }}>
+                        {/* Daily Incomes Trend */}
+                        <div className="chart-card">
+                            <div className="chart-header">
+                                <h3>Kunlik tushumlar trendi</h3>
+                            </div>
+                            <div className="chart-container">
+                                <AmAreaChart
+                                    data={summary?.incomes?.daily_trend || []}
+                                    xField="date"
+                                    yField="amount"
+                                    height={250}
+                                    color="#10b981"
+                                    tooltipText="Sana: {categoryX}\nTushum: {valueY}"
+                                />
+                            </div>
+                        </div>
 
-                {/* Incomes by Category */}
-                <div className="chart-card">
-                    <div className="chart-header">
-                        <h3>Daromad manbalari</h3>
-                    </div>
-                    <div className="chart-container pie-chart-container">
-                        <AmPieChart
-                            data={summary?.incomes?.by_category || []}
-                            nameField="name"
-                            valueField="value"
-                            height={260}
-                            innerRadius={55}
-                        />
-                    </div>
-                </div>
+                        {/* Incomes by Category */}
+                        <div className="chart-card">
+                            <div className="chart-header">
+                                <h3>Daromad manbalari</h3>
+                            </div>
+                            <div className="chart-container pie-chart-container">
+                                <AmPieChart
+                                    data={summary?.incomes?.by_category || []}
+                                    nameField="name"
+                                    valueField="value"
+                                    height={260}
+                                    innerRadius={55}
+                                />
+                            </div>
+                        </div>
 
-                {/* Incomes by Building */}
-                <div className="chart-card">
-                    <div className="chart-header">
-                        <h3>Binolar bo'yicha tushumlar</h3>
-                    </div>
-                    <div className="chart-container">
-                        <AmBarChart
-                            data={summary?.incomes?.by_building || []}
-                            xField="name"
-                            yField="value"
-                            height={250}
-                            color="#3b82f6"
-                            tooltipFormatter="{categoryX}: {valueY}"
-                        />
-                    </div>
-                </div>
-            </section>
+                        {/* Incomes by Building */}
+                        <div className="chart-card">
+                            <div className="chart-header">
+                                <h3>Binolar bo'yicha tushumlar</h3>
+                            </div>
+                            <div className="chart-container">
+                                <AmBarChart
+                                    data={summary?.incomes?.by_building || []}
+                                    xField="name"
+                                    yField="value"
+                                    height={250}
+                                    color="#3b82f6"
+                                    tooltipFormatter="{categoryX}: {valueY}"
+                                />
+                            </div>
+                        </div>
+                    </section>
+                </>
+            )}
 
             {/* Expenses Section */}
-            <div className="section-title">Chiqimlar tahlili</div>
-            <section className="charts-grid-layout charts-three-col">
-                {/* Daily Expenses Trend */}
-                <div className="chart-card">
-                    <div className="chart-header">
-                        <h3>Kunlik chiqimlar trendi</h3>
-                    </div>
-                    <div className="chart-container">
-                        <AmAreaChart
-                            data={summary?.expenses?.daily_trend || []}
-                            xField="date"
-                            yField="amount"
-                            height={250}
-                            color="#ef4444"
-                            tooltipText="Sana: {categoryX}\nChiqim: {valueY}"
-                        />
-                    </div>
-                </div>
+            {canViewExpenses && (
+                <>
+                    <div className="section-title">Chiqimlar tahlili</div>
+                    <section className="charts-grid-layout charts-three-col">
+                        {/* Daily Expenses Trend */}
+                        <div className="chart-card">
+                            <div className="chart-header">
+                                <h3>Kunlik chiqimlar trendi</h3>
+                            </div>
+                            <div className="chart-container">
+                                <AmAreaChart
+                                    data={summary?.expenses?.daily_trend || []}
+                                    xField="date"
+                                    yField="amount"
+                                    height={250}
+                                    color="#ef4444"
+                                    tooltipText="Sana: {categoryX}\nChiqim: {valueY}"
+                                />
+                            </div>
+                        </div>
 
-                {/* Expenses by Category */}
-                <div className="chart-card">
-                    <div className="chart-header">
-                        <h3>Xarajat turlari</h3>
-                    </div>
-                    <div className="chart-container pie-chart-container">
-                        <AmPieChart
-                            data={summary?.expenses?.by_category || []}
-                            nameField="name"
-                            valueField="value"
-                            height={260}
-                            innerRadius={55}
-                        />
-                    </div>
-                </div>
+                        {/* Expenses by Category */}
+                        <div className="chart-card">
+                            <div className="chart-header">
+                                <h3>Xarajat turlari</h3>
+                            </div>
+                            <div className="chart-container pie-chart-container">
+                                <AmPieChart
+                                    data={summary?.expenses?.by_category || []}
+                                    nameField="name"
+                                    valueField="value"
+                                    height={260}
+                                    innerRadius={55}
+                                />
+                            </div>
+                        </div>
 
-                {/* Expenses by Building */}
-                <div className="chart-card">
-                    <div className="chart-header">
-                        <h3>Binolar bo'yicha chiqimlar</h3>
-                    </div>
-                    <div className="chart-container">
-                        <AmBarChart
-                            data={summary?.expenses?.by_building || []}
-                            xField="name"
-                            yField="value"
-                            height={250}
-                            color="#f59e0b"
-                            tooltipFormatter="{categoryX}: {valueY}"
-                        />
-                    </div>
-                </div>
-            </section>
+                        {/* Expenses by Building */}
+                        <div className="chart-card">
+                            <div className="chart-header">
+                                <h3>Binolar bo'yicha chiqimlar</h3>
+                            </div>
+                            <div className="chart-container">
+                                <AmBarChart
+                                    data={summary?.expenses?.by_building || []}
+                                    xField="name"
+                                    yField="value"
+                                    height={250}
+                                    color="#f59e0b"
+                                    tooltipFormatter="{categoryX}: {valueY}"
+                                />
+                            </div>
+                        </div>
+                    </section>
+                </>
+            )}
         </div>
     );
 };

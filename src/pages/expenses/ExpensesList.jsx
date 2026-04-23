@@ -2,7 +2,7 @@ import { createPortal } from 'react-dom';
 import { useState, useEffect } from 'react';
 import expensesService from '../../services/expenses';
 import * as buildingsService from '../../services/buildings';
-import { getUsers } from '../../services/users';
+import { getFinanceUsers } from '../../services/users';
 import { useAuth } from '../../context/AuthContext';
 
 import { toast } from 'sonner';
@@ -67,26 +67,19 @@ const ExpensesList = () => {
 
     const loadInitialData = async () => {
         try {
-            const [buildingsData, categoriesData] = await Promise.all([
+            const [buildingsData, categoriesData, usersRes] = await Promise.all([
                 buildingsService.getAllBuildings(),
-                expensesService.getCategories({ active_only: 'true' })
+                expensesService.getCategories({ active_only: 'true' }),
+                getFinanceUsers()
             ]);
             const buildingsList = Array.isArray(buildingsData) ? buildingsData : (buildingsData.results || []);
             setBuildings(buildingsList);
             setCategories(categoriesData);
+            setUsers(usersRes.data || []);
 
             // Avtomatik tanlash
             if (buildingsList.length === 1 && !buildingFilter) {
                 setBuildingFilter(buildingsList[0].id.toString());
-            }
-
-            if (user?.is_superuser) {
-                try {
-                    const usersData = await getUsers({ page_size: 100 });
-                    setUsers(usersData.data?.results || usersData.data || []);
-                } catch (err) {
-                    console.error("Foydalanuvchilarni yuklashda xatolik", err);
-                }
             }
         } catch (error) {
             console.error(error);
@@ -294,7 +287,7 @@ const ExpensesList = () => {
                                 ))}
                             </select>
                             
-                            {user?.is_superuser && users.length > 0 && (
+                            {users.length > 0 && (
                                 <select
                                     className="filter-select"
                                     value={userFilter}
@@ -303,7 +296,7 @@ const ExpensesList = () => {
                                     <option value="">Barcha foydalanuvchilar</option>
                                     {users.map(u => (
                                         <option key={u.id} value={u.id}>
-                                            {u.first_name || u.username} {u.last_name || ''}
+                                            {u.name || u.username || (u.first_name ? `${u.first_name} ${u.last_name || ''}` : 'Foydalanuvchi')}
                                         </option>
                                     ))}
                                 </select>

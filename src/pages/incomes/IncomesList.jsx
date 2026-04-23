@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import incomesService from '../../services/incomes';
 import * as buildingsService from '../../services/buildings';
+import { getFinanceUsers } from '../../services/users';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'sonner';
 import './Incomes.css';
@@ -26,6 +27,8 @@ const IncomesList = () => {
     const [search, setSearch] = useState('');
     const [buildingFilter, setBuildingFilter] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('');
+    const [users, setUsers] = useState([]);
+    const [userFilter, setUserFilter] = useState('');
     
     const [pagination, setPagination] = useState({
         count: 0,
@@ -33,6 +36,16 @@ const IncomesList = () => {
         pageSize: 20,
         totalPages: 1
     });
+
+    const formatPhone = (phone) => {
+        if (!phone) return '-';
+        let cleaned = phone.toString().replace(/\D/g, '');
+        if (cleaned.length === 9) cleaned = '998' + cleaned;
+        if (cleaned.length === 12) {
+            return `+${cleaned.slice(0, 3)} ${cleaned.slice(3, 5)} ${cleaned.slice(5, 8)} ${cleaned.slice(8, 10)} ${cleaned.slice(10, 12)}`;
+        }
+        return phone;
+    };
 
     const [modal, setModal] = useState({ open: false, type: null, item: null });
     const [modalClosing, setModalClosing] = useState(false);
@@ -55,13 +68,14 @@ const IncomesList = () => {
 
     useEffect(() => {
         loadIncomes();
-    }, [pagination.page, search, buildingFilter, categoryFilter]);
+    }, [pagination.page, search, buildingFilter, categoryFilter, userFilter]);
 
     const loadBaseData = async () => {
         try {
-            const [buildingsRes, categoriesRes] = await Promise.all([
+            const [buildingsRes, categoriesRes, usersRes] = await Promise.all([
                 buildingsService.getAllBuildings(),
-                incomesService.getCategories()
+                incomesService.getCategories(),
+                getFinanceUsers()
             ]);
             const bData = buildingsRes.results || buildingsRes;
             const cData = categoriesRes.results || categoriesRes;
@@ -69,6 +83,7 @@ const IncomesList = () => {
             const buildingsList = Array.isArray(bData) ? bData.filter(b => !b.is_archived) : [];
             setBuildings(buildingsList);
             setCategories(Array.isArray(cData) ? cData : []);
+            setUsers(usersRes.data || []);
 
             // Avtomatik tanlash
             if (buildingsList.length === 1 && !buildingFilter) {
@@ -87,6 +102,7 @@ const IncomesList = () => {
                 page_size: pagination.pageSize,
                 building_id: buildingFilter,
                 category_id: categoryFilter,
+                user: userFilter,
                 search: search
             };
             const data = await incomesService.getIncomes(params);
@@ -252,6 +268,14 @@ const IncomesList = () => {
                             <option value="">Barcha kategoriyalar</option>
                             {Array.isArray(categories) && categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
+                        <select className="filter-select" value={userFilter} onChange={(e) => setUserFilter(e.target.value)}>
+                            <option value="">Barcha foydalanuvchilar</option>
+                            {Array.isArray(users) && users.map(u => (
+                                <option key={u.id} value={u.id}>
+                                    {u.name || u.username || (u.first_name ? `${u.first_name} ${u.last_name || ''}` : 'Foydalanuvchi')}
+                                </option>
+                            ))}
+                        </select>
                     </div>
                 </div>
 
@@ -291,7 +315,7 @@ const IncomesList = () => {
                                             <td>{item.description}</td>
                                             <td>
                                                 <div style={{fontSize: '13px'}}>{item.payer_name || '-'}</div>
-                                                <div style={{fontSize: '11px', color: 'var(--text-secondary)'}}>{item.payer_phone}</div>
+                                                <div style={{fontSize: '11px', color: 'var(--text-secondary)'}}>{formatPhone(item.payer_phone)}</div>
                                             </td>
                                             <td style={{fontWeight: 700, color: '#10b981'}}>
                                                 {formatCurrency(item.amount)}

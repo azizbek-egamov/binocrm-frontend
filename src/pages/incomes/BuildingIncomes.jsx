@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import incomesService from '../../services/incomes';
 import * as buildingsService from '../../services/buildings';
+import { getFinanceUsers } from '../../services/users';
 import { toast } from 'sonner';
 import { createPortal } from 'react-dom';
 import './Incomes.css';
@@ -67,9 +68,48 @@ const BuildingIncomes = () => {
     const [incomesTotalPages, setIncomesTotalPages] = useState(1);
     const INCOMES_PAGE_SIZE = 20;
 
+    const formatPhone = (phone) => {
+        if (!phone) return '-';
+        let cleaned = phone.toString().replace(/\D/g, '');
+        if (cleaned.length === 9) cleaned = '998' + cleaned;
+        if (cleaned.length === 12) {
+            return `+${cleaned.slice(0, 3)} ${cleaned.slice(3, 5)} ${cleaned.slice(5, 8)} ${cleaned.slice(8, 10)} ${cleaned.slice(10, 12)}`;
+        }
+        return phone;
+    };
+
+    const loadBaseData = async () => {
+        try {
+            setLoading(true);
+            const [buildingsRes, categoriesRes, usersRes] = await Promise.all([
+                buildingsService.getBuildings({ page: currentPage, page_size: PAGE_SIZE }),
+                incomesService.getCategories(),
+                getFinanceUsers()
+            ]);
+            
+            const bData = buildingsRes.results || buildingsRes;
+            setBuildings(bData);
+            if (buildingsRes.count) {
+                setTotalPages(Math.ceil(buildingsRes.count / PAGE_SIZE));
+            }
+            
+            setCategories(categoriesRes.results || categoriesRes);
+            setUsers(usersRes.data || []);
+
+            // Auto select
+            if (!selectedBuilding && bData.length > 0) {
+                setSelectedBuilding(bData[0]);
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error("Ma'lumotlarni yuklashda xatolik");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        loadBuildings();
-        loadCategories();
+        loadBaseData();
     }, [currentPage]);
 
     useEffect(() => {
@@ -81,38 +121,6 @@ const BuildingIncomes = () => {
             }
         }
     }, [selectedBuilding, activeTab, startDate, endDate, filterCategory, filterUser, incomesPage]);
-
-    const loadCategories = async () => {
-        try {
-            const data = await incomesService.getCategories();
-            setCategories(data.results || data);
-        } catch (e) {
-            console.error(e);
-        }
-    };
-
-    const loadBuildings = async () => {
-        try {
-            setLoading(true);
-            const data = await buildingsService.getBuildings({ page: currentPage, page_size: PAGE_SIZE });
-            if (data.results) {
-                setBuildings(data.results);
-                setTotalPages(Math.ceil(data.count / PAGE_SIZE));
-                if (!selectedBuilding && data.results.length > 0) {
-                    setSelectedBuilding(data.results[0]);
-                }
-            } else {
-                setBuildings(data);
-                if (!selectedBuilding && data.length > 0) {
-                    setSelectedBuilding(data[0]);
-                }
-            }
-        } catch (error) {
-            toast.error("Binolarni yuklashda xatolik");
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const loadIncomesList = async (building = selectedBuilding) => {
         if (!building) return;
@@ -422,24 +430,50 @@ const BuildingIncomes = () => {
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {incomesList.map(item => (
-                                                        <tr key={item.id}>
+                                                    {incomesList.map(item => {
+                                                        const isContract = item.source_type === 'contract';
+                                                        return (
+                                                        <tr key={item.id} style={isContract ? { background: 'rgba(59,130,246,0.04)' } : {}}>
                                                             <td>{item.date}</td>
-                                                            <td><span className={`status-badge ${item.category_color}`}>{item.category_name}</span></td>
+                                                            <td>
+                                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                                    <span className={`status-badge ${item.category_color}`}>{item.category_name}</span>
+                                                                    {isContract && (
+                                                                        <span style={{
+                                                                            fontSize: '10px', fontWeight: 600,
+                                                                            color: '#3b82f6',
+                                                                            background: 'rgba(59,130,246,0.12)',
+                                                                            borderRadius: '4px', padding: '1px 6px',
+                                                                            display: 'inline-flex', alignItems: 'center', gap: '4px',
+                                                                            width: 'fit-content'
+                                                                        }}>
+                                                                            🔗 Shartnoma (avtomatik)
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </td>
                                                             <td>{item.description}</td>
                                                             <td style={{ fontWeight: '700', color: 'var(--success-color)' }}>{formatPrice(item.amount)}</td>
                                                             <td>
                                                                 <div>{item.payer_name || '-'}</div>
-                                                                <small style={{color: 'var(--text-secondary)'}}>{item.created_by_name}</small>
+                                                                <div style={{fontSize: '11px', color: 'var(--text-secondary)'}}>{formatPhone(item.payer_phone)}</div>
+                                                                <small style={{color: 'var(--text-secondary)', display: 'block', marginTop: '2px', opacity: 0.7}}>{item.created_by_name}</small>
                                                             </td>
                                                             <td style={{textAlign: 'right'}}>
-                                                                <div style={{display: 'flex', gap: '8px', justifyContent: 'flex-end'}}>
-                                                                    <button className="action-btn-mini" onClick={() => openModal('edit', item)}><EditIcon /></button>
-                                                                    <button className="action-btn-mini danger" onClick={() => setModal({open: true, type: 'delete', item})}><TrashIcon /></button>
-                                                                </div>
+                                                                {isContract ? (
+                                                                    <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                                                                        Avtomatik
+                                                                    </span>
+                                                                ) : (
+                                                                    <div style={{display: 'flex', gap: '8px', justifyContent: 'flex-end'}}>
+                                                                        <button className="action-btn-mini" onClick={() => openModal('edit', item)}><EditIcon /></button>
+                                                                        <button className="action-btn-mini danger" onClick={() => setModal({open: true, type: 'delete', item})}><TrashIcon /></button>
+                                                                    </div>
+                                                                )}
                                                             </td>
                                                         </tr>
-                                                    ))}
+                                                        );
+                                                    })}
                                                 </tbody>
                                             </table>
                                             {incomesTotalPages > 1 && (

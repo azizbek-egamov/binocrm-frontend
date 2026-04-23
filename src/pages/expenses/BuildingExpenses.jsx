@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import * as buildingsService from '../../services/buildings';
 import expensesService from '../../services/expenses';
+import { getFinanceUsers } from '../../services/users';
 import { toast } from 'sonner';
 import './Expenses.css';
 import '../analytics/Analytics.css';
@@ -84,15 +85,13 @@ const BuildingExpenses = () => {
     };
 
     useEffect(() => {
-        loadBuildings();
-        loadFilterOptions();
+        loadBaseData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentPage]);
 
     // Refresh list or stats when filters change (if a building is selected)
     useEffect(() => {
         if (selectedBuilding) {
-
             if (activeTab === 'list') {
                 loadExpensesList(selectedBuilding);
             } else if (activeTab === 'stats') {
@@ -104,30 +103,30 @@ const BuildingExpenses = () => {
 
     // Reset page when filters change
     useEffect(() => {
-
         setExpensesPage(1);
     }, [startDate, endDate, filterCategory, filterUser]);
 
-    const loadFilterOptions = async () => {
-        try {
-            const [cats] = await Promise.all([
-                expensesService.getCategories({ active_only: true })
-            ]);
-            setCategories(cats.results || cats);
-        } catch (e) {
-            console.error("Filter options loading failed", e);
-        }
-    };
-
-    const loadBuildings = async () => {
+    const loadBaseData = async () => {
         try {
             setLoading(true);
-            const data = await buildingsService.getBuildings({ page: currentPage, page_size: PAGE_SIZE });
-            if (data.results) {
-                setBuildings(data.results);
-                setTotalPages(Math.ceil(data.count / PAGE_SIZE));
-            } else {
-                setBuildings(data);
+            const [buildingsRes, catsRes, usersRes] = await Promise.all([
+                buildingsService.getBuildings({ page: currentPage, page_size: PAGE_SIZE }),
+                expensesService.getCategories({ active_only: true }),
+                getFinanceUsers()
+            ]);
+
+            const bData = buildingsRes.results || buildingsRes;
+            setBuildings(bData);
+            if (buildingsRes.count) {
+                setTotalPages(Math.ceil(buildingsRes.count / PAGE_SIZE));
+            }
+
+            setCategories(catsRes.results || catsRes);
+            setUsers(usersRes.data || []);
+
+            // Auto select
+            if (!selectedBuilding && bData.length > 0) {
+                loadBuildingData(bData[0]);
             }
         } catch (error) {
             console.error(error);
@@ -204,7 +203,7 @@ const BuildingExpenses = () => {
             setStats({
                 ...data,
                 cumulative_trend: cumulativeTrend,
-                consumption_percentage: data.budget ? (data.spent_amount / data.budget) * 100 : 0
+                consumption_percentage: data.budget ? (data.building_total_spent / data.budget) * 100 : 0
             });
         } catch (err) {
             console.error(err);
@@ -543,7 +542,7 @@ const BuildingExpenses = () => {
                                                 <div className="kpi-card">
                                                     <div className="kpi-icon-wrapper danger"><WalletIcon /></div>
                                                     <div className="kpi-info">
-                                                        <span className="kpi-label">Jami Xarajat</span>
+                                                        <span className="kpi-label">{(startDate || endDate || filterUser) ? "Filtr bo'yicha sarf" : "Jami Xarajat"}</span>
                                                         <h3 className="kpi-value">{formatPrice(stats.spent_amount)}</h3>
                                                     </div>
                                                 </div>
@@ -566,7 +565,7 @@ const BuildingExpenses = () => {
                                                 <div className="kpi-card">
                                                     <div className="kpi-icon-wrapper warning"><InfoIcon /></div>
                                                     <div className="kpi-info">
-                                                        <span className="kpi-label">Byudjet Sarfi</span>
+                                                        <span className="kpi-label">Umumiy Sarf</span>
                                                         <h3 className="kpi-value">{stats.consumption_percentage?.toFixed(1)}%</h3>
                                                     </div>
                                                 </div>
