@@ -3,6 +3,9 @@ import { toast } from 'sonner';
 import { createPortal } from 'react-dom';
 import Modal from '../../components/ui/Modal';
 import { getForms, createForm, updateForm, deleteForm } from '../../services/forms';
+import { getLeadOperator, updateLeadOperator } from '../../services/settings';
+import { getUsers } from '../../services/users';
+import { useAuth } from '../../context/AuthContext';
 import './FormsPage.css';
 
 const FormsPage = () => {
@@ -15,6 +18,12 @@ const FormsPage = () => {
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [formToDelete, setFormToDelete] = useState(null);
 
+    const { user } = useAuth();
+    const [leadOperator, setLeadOperator] = useState('ceoadmin');
+    const [operators, setOperators] = useState([]);
+    
+    const canManageSettings = user?.is_superuser || user?.permissions?.can_view_users;
+
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -25,7 +34,44 @@ const FormsPage = () => {
 
     useEffect(() => {
         loadForms();
-    }, []);
+        if (canManageSettings) {
+            fetchSettings();
+            fetchOperators();
+        }
+    }, [canManageSettings]);
+
+    const fetchSettings = async () => {
+        try {
+            const response = await getLeadOperator();
+            setLeadOperator(response.data.username);
+        } catch (error) {
+            console.error("Sozlamalarni yuklashda xatolik:", error);
+        }
+    };
+
+    const fetchOperators = async () => {
+        try {
+            const response = await getUsers();
+            const usersData = response.data.results || response.data;
+            if (Array.isArray(usersData)) {
+                // Faqat faol operatorlarni yoki superuserlarni saralab olish
+                const ops = usersData.filter(u => u.is_active && u.permissions?.is_operator && !u.is_superuser);
+                setOperators(ops);
+            }
+        } catch (error) {
+            console.error("Operatorlarni yuklashda xatolik:", error);
+        }
+    };
+
+    const handleOperatorChange = async (username) => {
+        try {
+            await updateLeadOperator(username);
+            setLeadOperator(username);
+            toast.success("Lead operatori yangilandi");
+        } catch (error) {
+            toast.error("Yangilashda xatolik yuz berdi");
+        }
+    };
 
     const loadForms = async () => {
         try {
@@ -168,9 +214,27 @@ const FormsPage = () => {
                     <h1 className="page-title">Formalar</h1>
                     <p className="page-subtitle">Dinamik formalar yarating va leadlarni yig'ing</p>
                 </div>
-                <button className="btn-primary" onClick={openCreateModal}>
-                    <PlusIcon /> Forma yaratish
-                </button>
+                <div className="header-actions">
+                    {canManageSettings && (
+                        <div className="lead-operator-setting">
+                            <label>Lead operatori:</label>
+                            <select 
+                                value={leadOperator} 
+                                onChange={(e) => handleOperatorChange(e.target.value)}
+                                className="operator-select"
+                            >
+                                {operators.map(op => (
+                                    <option key={op.id} value={op.username}>
+                                        {op.first_name} {op.last_name} (@{op.username})
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+                    <button className="btn-primary" onClick={openCreateModal}>
+                        <PlusIcon /> Forma yaratish
+                    </button>
+                </div>
             </div>
 
             {loading ? (
