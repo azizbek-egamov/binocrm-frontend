@@ -332,14 +332,14 @@ const ContractsList = () => {
                                                 Yuklanmoqda...
                                             </td>
                                         </tr>
-                                    ) : contracts.length === 0 ? (
+                                    ) : (Array.isArray(contracts) && contracts.length === 0) ? (
                                         <tr>
                                             <td colSpan="8" style={{ textAlign: 'center', padding: '40px' }}>
                                                 Hech qanday ma'lumot topilmadi
                                             </td>
                                         </tr>
                                     ) : (
-                                        contracts.map((contract, index) => (
+                                        Array.isArray(contracts) && contracts.map((contract, index) => (
                                             <tr
                                                 key={contract.id}
                                                 onClick={() => showContractDetails(contract.id)}

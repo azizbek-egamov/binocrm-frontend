@@ -423,7 +423,7 @@ const LeadsKanban = () => {
                 leadService.getStatistics(params, { signal }).catch(() => ({ data: {} }))
             ]);
             // Har bir ustun uchun page=1 va has_more qo'shish
-            const columnsWithPage = kanbanRes.data.map(col => ({
+            const columnsWithPage = (Array.isArray(kanbanRes.data) ? kanbanRes.data : []).map(col => ({
                 ...col,
                 page: 1,
                 loadingMore: false,
@@ -530,8 +530,8 @@ const LeadsKanban = () => {
             setColumns(prev => prev.map(c => {
                 if (c.id !== columnId) return c;
                 // Duplikat leadlarni oldini olish
-                const existingIds = new Set(c.items.map(i => i.id));
-                const newItems = res.data.items.filter(i => !existingIds.has(i.id));
+                const existingIds = new Set((c.items || []).map(i => i.id));
+                const newItems = (Array.isArray(res.data.items) ? res.data.items : []).filter(i => !existingIds.has(i.id));
                 return {
                     ...c,
                     items: [...c.items, ...newItems],

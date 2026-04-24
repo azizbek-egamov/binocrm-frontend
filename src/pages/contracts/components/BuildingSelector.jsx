@@ -167,7 +167,9 @@ const BuildingSelector = ({ onSelect, selectedData }) => {
                     </div>
                     <div className="summary-item">
                         <div className="label">Uylar soni</div>
-                        <div className="value">{selectedBuilding.total_homes || selectedBuilding.padez_home?.reduce((a, b) => a + b, 0)}</div>
+                        <div className="value">
+                            {selectedBuilding.total_homes || (Array.isArray(selectedBuilding.padez_home) ? selectedBuilding.padez_home.reduce((a, b) => a + (parseInt(b) || 0), 0) : 0)}
+                        </div>
                     </div>
                 </div>
             )}

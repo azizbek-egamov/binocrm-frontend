@@ -230,7 +230,7 @@ const HomeCreate = () => {
                         </div>
                         {selectedBuilding && (
                             <div className="results-count">
-                                <strong>{selectedBuilding.name}</strong> - {selectedBuilding.padez_home?.reduce((a, b) => a + b, 0)} ta xonadon
+                                <strong>{selectedBuilding.name}</strong> - {Array.isArray(selectedBuilding.padez_home) ? selectedBuilding.padez_home.reduce((a, b) => a + (parseInt(b) || 0), 0) : 0} ta xonadon
                             </div>
                         )}
                     </div>

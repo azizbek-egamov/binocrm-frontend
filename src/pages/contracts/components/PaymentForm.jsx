@@ -304,12 +304,12 @@ const PaymentForm = ({ formData, homeData, onChange, isEditMode = false }) => {
     const remainingAmount = Math.max(0, totalPrice - initialPayment); // Qoldiq summa
 
     // Custom distribution breakdown
-    const customMonthsCount = customPayments.reduce(
+    const customMonthsCount = Array.isArray(customPayments) ? customPayments.reduce(
         (acc, g) => acc + (parseInt(g.months) || 0), 0
-    );
-    const customSum = customPayments.reduce(
+    ) : 0;
+    const customSum = Array.isArray(customPayments) ? customPayments.reduce(
         (acc, g) => acc + (parseInt(g.months) || 0) * (parseFormattedNumber(g.amount) || 0), 0
-    );
+    ) : 0;
     const remainingMonths          = Math.max(0, termMonths - customMonthsCount);
     const remainingAmountAfterCustom = Math.max(0, remainingAmount - customSum);
 
@@ -575,7 +575,7 @@ const PaymentForm = ({ formData, homeData, onChange, isEditMode = false }) => {
                             </button>
                         </div>
 
-                        {customPayments.map((group, index) => (
+                        {Array.isArray(customPayments) && customPayments.map((group, index) => (
                             <div key={index} className="payment-group-row">
                                 <div className="group-field months-field">
                                     <label>

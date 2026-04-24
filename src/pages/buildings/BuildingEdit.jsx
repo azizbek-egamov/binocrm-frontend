@@ -62,7 +62,7 @@ const BuildingEdit = () => {
         location: data.location || "",
         floor: data.floor || "",
         padez: data.padez || "",
-        padez_home: data.padez_home || [],
+        padez_home: Array.isArray(data.padez_home) ? data.padez_home : [],
         construction_status: data.construction_status || "new",
         budget: data.budget ? String(Math.floor(Number(data.budget))) : "",
         construction_start_date: data.construction_start_date || "",
@@ -86,7 +86,7 @@ const BuildingEdit = () => {
   const isStructureLocked = originalBuilding?.status === true;
 
   const totalHomes = useMemo(() => {
-    if (!formData.padez_home.length) return 0;
+    if (!Array.isArray(formData.padez_home) || !formData.padez_home.length) return 0;
     return formData.padez_home.reduce((sum, v) => sum + (parseInt(v) || 0), 0);
   }, [formData.padez_home]);
 

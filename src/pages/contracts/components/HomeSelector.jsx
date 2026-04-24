@@ -303,7 +303,7 @@ const HomeSelector = ({ buildingId, onSelect, selectedHomeId, contractedHomeId }
                     </div>
                 ) : (
                     <div className="homes-list-grouped">
-                        {Object.keys(buildingStructure).sort((a, b) => a - b).map(padez => {
+                        {buildingStructure && Object.keys(buildingStructure).sort((a, b) => a - b).map(padez => {
                             const padezHomes = homes.filter(h => h.padez == padez).sort((a, b) => {
                                 const numA = parseInt(a.number) || 0;
                                 const numB = parseInt(b.number) || 0;

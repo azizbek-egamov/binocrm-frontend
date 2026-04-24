@@ -45,7 +45,7 @@ const BuildingCreate = () => {
 
   /* ── Computed ───────────────────────────────────────────── */
   const totalHomes = useMemo(() => {
-    if (!formData.padez_home.length) return 0;
+    if (!Array.isArray(formData.padez_home) || !formData.padez_home.length) return 0;
     return formData.padez_home.reduce((sum, v) => sum + (parseInt(v) || 0), 0);
   }, [formData.padez_home]);
 

@@ -71,8 +71,8 @@ const ContractSchedule = () => {
         contractService.getPayments(id),
       ]);
       setContract(contractRes.data);
-      setPayments(paymentsRes.data);
-      setEditablePayments(JSON.parse(JSON.stringify(paymentsRes.data)));
+      setPayments(Array.isArray(paymentsRes.data) ? paymentsRes.data : []);
+      setEditablePayments(Array.isArray(paymentsRes.data) ? JSON.parse(JSON.stringify(paymentsRes.data)) : []);
     } catch (error) {
       toast.error("Ma'lumotlarni yuklashda xatolik");
       console.error(error);
@@ -130,7 +130,7 @@ const ContractSchedule = () => {
 
   // Maqsadli summa - qolgan qarz (0-oy bundan mustasno, bu boshlang'ich to'lov)
   const targetAmount = useMemo(() => {
-    if (!contract) return 0;
+    if (!contract || !Array.isArray(editablePayments)) return 0;
     // Oylik to'lovlar uchun maqsad = jami narx - boshlang'ich to'lov (0-oy)
     const initialPayment = editablePayments.find((p) => p.month_number === 0);
     const initialAmount = initialPayment
@@ -141,6 +141,7 @@ const ContractSchedule = () => {
 
   // Hozirgi jami (barcha oylik to'lovlar yig'indisi, 0-oysiz)
   const currentTotal = useMemo(() => {
+    if (!Array.isArray(editablePayments)) return 0;
     return editablePayments
       .filter((p) => p.month_number > 0)
       .reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
@@ -156,6 +157,7 @@ const ContractSchedule = () => {
     const totalHousePrice = parseFloat(contract?.total_price || 0);
 
     // Deep clone to ensure React detects state changes
+    if (!Array.isArray(editablePayments)) return;
     const updated = JSON.parse(JSON.stringify(editablePayments));
     const idx = updated.findIndex((p) => p.id === paymentId);
     if (idx === -1) return;
@@ -245,7 +247,7 @@ const ContractSchedule = () => {
   const saveChanges = async () => {
     setProcessingId("saving");
     try {
-      const changes = editablePayments.map((p) => ({
+      const changes = (Array.isArray(editablePayments) ? editablePayments : []).map((p) => ({
         id: p.id,
         amount: p.amount,
         due_date: p.due_date,
@@ -450,7 +452,8 @@ const ContractSchedule = () => {
   };
 
   const activePayments = useMemo(() => {
-    return isEditMode ? editablePayments : payments || [];
+    const list = isEditMode ? editablePayments : payments;
+    return Array.isArray(list) ? list : [];
   }, [isEditMode, editablePayments, payments]);
 
   if (loading)
