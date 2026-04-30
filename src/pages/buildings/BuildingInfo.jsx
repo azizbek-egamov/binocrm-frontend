@@ -380,42 +380,6 @@ const BuildingInfo = () => {
             </div>
           </div>
 
-          {/* Budget Stats - Separate Row */}
-          {selectedBuilding && (
-            <div className="budget-stats-row">
-              <div className="budget-mini-stats">
-                <div className="stat-item">
-                  <span className="stat-label">Umumiy maydon:</span>
-                  <span className="stat-value">
-                    {selectedBuilding.total_area || 0} m²
-                  </span>
-                </div>
-                <div className="stat-divider"></div>
-                <div className="stat-item">
-                  <span className="stat-label">Byudjet:</span>
-                  <span className="stat-value">
-                    {formatNumber(selectedBuilding.budget)} so'm
-                  </span>
-                </div>
-                <div className="stat-divider"></div>
-                <div className="stat-item">
-                  <span className="stat-label">Sarflandi:</span>
-                  <span className="stat-value spent">
-                    {formatNumber(selectedBuilding.spent_amount)} so'm
-                  </span>
-                </div>
-                <div className="stat-divider"></div>
-                <div className="stat-item">
-                  <span className="stat-label">Qoldi:</span>
-                  <span
-                    className={`stat-value remaining ${selectedBuilding.remaining_budget < 0 ? "text-danger" : "text-success"}`}
-                  >
-                    {formatNumber(selectedBuilding.remaining_budget)} so'm
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Building Grid Section */}
