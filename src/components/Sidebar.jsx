@@ -127,7 +127,7 @@ const Sidebar = () => {
             path: '/analytics',
             icon: <PieChartIcon />,
             label: 'Analitika',
-            permission: 'can_view_analytics'
+            permission: 'superuser_only'
         },
         // {
         //     type: 'link',

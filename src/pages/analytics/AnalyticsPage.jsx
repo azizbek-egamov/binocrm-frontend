@@ -33,6 +33,7 @@ import {
 } from "../../components/OperatorFunnelChart";
 import "./Analytics.css";
 import AnalyticsFilterDrawer from "./components/AnalyticsFilterDrawer";
+import FinanceDashboard from "./components/FinanceDashboard";
 
 // Premium Chart Colors
 const COLORS = [
@@ -174,6 +175,12 @@ const AnalyticsPage = () => {
   // Rol tekshiruvi: admin yoki foydalanuvchilar bo'limiga kirish huquqi bor
   const isAdmin = user?.is_superuser || user?.permissions?.can_view_users;
 
+  // Finance bo'limini ko'ra oladi?
+  const canViewFinance =
+    user?.is_superuser ||
+    user?.permissions?.can_view_incomes ||
+    user?.permissions?.can_view_expenses;
+
   // Sales filters
   const [salesFilters, setSalesFilters] = useState({
     start_date: "",
@@ -191,6 +198,14 @@ const AnalyticsPage = () => {
     stage: "",
     call_status: "",
     include_archived: false,
+  });
+
+  // Finance filters
+  const [financeFilters, setFinanceFilters] = useState({
+    start_date: "",
+    end_date: "",
+    city: "",
+    building: "",
   });
 
   const [cities, setCities] = useState([]);
@@ -229,24 +244,22 @@ const AnalyticsPage = () => {
   const fetchStats = async () => {
     setLoading(true);
     try {
-      const filters = activeTab === "sales" ? salesFilters : leadsFilters;
-      let currentData = null;
       if (activeTab === "sales") {
-        const res = await analyticsService.getContractsStats(filters);
-        currentData = res.data;
+        const res = await analyticsService.getContractsStats(salesFilters);
         setStats(res.data);
-      } else {
-        const res = await analyticsService.getLeadsStats(filters);
-        currentData = res.data;
+      } else if (activeTab === "leads") {
+        const res = await analyticsService.getLeadsStats(leadsFilters);
         setStats(res.data);
-      }
-
-      if (activeTab === "leads" && currentData?.leads_by_operator) {
-        setOperators(
-          currentData.leads_by_operator
-            .map((o) => ({ id: o.operator_id, name: o.operator_name }))
-            .filter((o) => o.id),
-        );
+        if (res.data?.leads_by_operator) {
+          setOperators(
+            res.data.leads_by_operator
+              .map((o) => ({ id: o.operator_id, name: o.operator_name }))
+              .filter((o) => o.id),
+          );
+        }
+      } else if (activeTab === "finance") {
+        const res = await analyticsService.getFinanceStats(financeFilters);
+        setStats(res.data);
       }
     } catch (error) {
       toast.error("Statistikalarni yuklashda xatolik yuz berdi");
@@ -1015,6 +1028,15 @@ const LeadsDashboard = React.memo(({ stats, STATUS_LABELS, COLORS, themeColors, 
               <Users size={18} />
               Leadlar
             </button>
+            {canViewFinance && (
+              <button
+                className={`tab-btn finance-tab-btn ${activeTab === "finance" ? "active" : ""}`}
+                onClick={() => setActiveTab("finance")}
+              >
+                <TrendingUp size={18} />
+                Moliya
+              </button>
+            )}
           </div>
 
           <div className="header-right">
@@ -1037,14 +1059,14 @@ const LeadsDashboard = React.memo(({ stats, STATUS_LABELS, COLORS, themeColors, 
           </div>
         ) : (
           <>
-          <>
-            {activeTab === "sales" ? (
+            {activeTab === "sales" && (
               <SalesDashboard
                 stats={stats}
                 formatNumber={formatNumber}
                 STATUS_LABELS={STATUS_LABELS}
               />
-            ) : (
+            )}
+            {activeTab === "leads" && (
               <LeadsDashboard
                 stats={stats}
                 STATUS_LABELS={STATUS_LABELS}
@@ -1054,7 +1076,9 @@ const LeadsDashboard = React.memo(({ stats, STATUS_LABELS, COLORS, themeColors, 
                 isAdmin={isAdmin}
               />
             )}
-          </>
+            {activeTab === "finance" && (
+              <FinanceDashboard stats={stats} />
+            )}
           </>
         )}
       </div>
@@ -1063,7 +1087,13 @@ const LeadsDashboard = React.memo(({ stats, STATUS_LABELS, COLORS, themeColors, 
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
         activeTab={activeTab}
-        initialFilters={activeTab === "sales" ? salesFilters : leadsFilters}
+        initialFilters={
+          activeTab === "sales"
+            ? salesFilters
+            : activeTab === "finance"
+            ? financeFilters
+            : leadsFilters
+        }
         cities={cities}
         buildings={buildings}
         stages={stages}
@@ -1076,11 +1106,14 @@ const LeadsDashboard = React.memo(({ stats, STATUS_LABELS, COLORS, themeColors, 
               setSalesFilters(newFilters);
               const res = await analyticsService.getContractsStats(newFilters);
               setStats(res.data);
+            } else if (activeTab === "finance") {
+              setFinanceFilters(newFilters);
+              const res = await analyticsService.getFinanceStats(newFilters);
+              setStats(res.data);
             } else {
               setLeadsFilters(newFilters);
               const res = await analyticsService.getLeadsStats(newFilters);
               setStats(res.data);
-
               if (res.data?.leads_by_operator) {
                 setOperators(
                   res.data.leads_by_operator

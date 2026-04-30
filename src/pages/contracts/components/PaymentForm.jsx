@@ -523,16 +523,40 @@ const PaymentForm = ({ formData, homeData, onChange, isEditMode = false }) => {
                     <select
                         className="form-select"
                         value={formData.status || 'pending'}
-                        onChange={(e) => onChange('status', e.target.value)}
+                        onChange={(e) => {
+                            const newStatus = e.target.value;
+                            // BUG 9 FIX: paid/completed tanlashda tasdiq so'rash
+                            if (newStatus === 'paid' || newStatus === 'completed') {
+                                const label = newStatus === 'paid' ? "To'liq to'langan" : "Tugallangan";
+                                const confirmed = window.confirm(
+                                    `⚠️ Diqqat!\n\n"${label}" holatini tanlamoqchisiz.\n\nBu shartnomaning BUTUN NARXI darhol kirim sifatida yoziladi!\n\nDavom etasizmi?`
+                                );
+                                if (!confirmed) return;
+                            }
+                            onChange('status', newStatus);
+                        }}
                     >
                         <option value="pending">Rasmiylashtirilmoqda</option>
                         <option value="active">Rasmiylashtirilgan</option>
-                        <option value="paid">To'liq to'langan</option>
+                        <option value="paid">To&apos;liq to&apos;langan</option>
                         <option value="completed">Tugallangan</option>
                         {isEditMode && (
                             <option value="cancelled">Bekor qilingan</option>
                         )}
                     </select>
+                    {(formData.status === 'paid' || formData.status === 'completed') && (
+                        <div style={{
+                            marginTop: '6px',
+                            padding: '8px 12px',
+                            background: 'rgba(239,68,68,0.1)',
+                            border: '1px solid rgba(239,68,68,0.4)',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            color: '#ef4444',
+                        }}>
+                            ⚠️ Bu holat saqlanganda shartnomaning to&apos;liq narxi <strong>darhol kirim sifatida yoziladi</strong>.
+                        </div>
+                    )}
                     <small className="input-hint">
                         {formData.status === 'paid' || formData.status === 'completed'
                             ? "Shartnoma to'liq to'landi deb belgilanadi"

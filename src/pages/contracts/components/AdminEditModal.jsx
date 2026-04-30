@@ -15,6 +15,10 @@ const AdminEditModal = ({
     isLoading,
     formatPrice
 }) => {
+    const numericAmount = parseInt(String(amount || "").replace(/\s/g, "").replace(/\D/g, "")) || 0;
+    const maxAmount = payment?.amount || 0;
+    const isOverLimit = numericAmount > maxAmount;
+
     return (
         <Modal
             isOpen={isOpen}
@@ -35,7 +39,7 @@ const AdminEditModal = ({
                         type="button"
                         className="btn-v2 btn-v2-primary"
                         onClick={onSubmit}
-                        disabled={isLoading}
+                        disabled={isLoading || !amount || isOverLimit}
                     >
                         {isLoading ? 'Saqlanmoqda...' : "O'zgarishni saqlash"}
                     </button>
@@ -61,10 +65,16 @@ const AdminEditModal = ({
                     value={amount}
                     onChange={onAmountChange}
                     placeholder="Yangi miqdor kiriting"
+                    status={isOverLimit ? 'error' : ''}
                 />
+                {isOverLimit && (
+                    <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', fontWeight: '500' }}>
+                        Diqqat: To'lov miqdori belgilangan oylik miqdordan (${formatPrice(maxAmount)}) oshib ketdi!
+                    </div>
+                )}
             </FormField>
 
-            <InfoNote type="danger">
+            <InfoNote type={isOverLimit ? "error" : "danger"}>
                 <strong>Diqqat:</strong> Bu amalni faqat admin foydalanuvchi bajar oladi. O'zgarishlar avtomatik ravishda tizimdagi barcha hisoblashlarni qayta hisoblab chiqadi.
             </InfoNote>
         </Modal>

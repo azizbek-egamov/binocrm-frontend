@@ -771,3 +771,89 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     transform: scale(1.05);
 }
 
+/* --- FINANCE SPECIFIC STYLES --- */
+.finance-kpi-row {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 1400px) {
+    .finance-kpi-row {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 1100px) {
+    .finance-kpi-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .finance-kpi-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.finance-kpi-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.finance-kpi-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100px;
+    height: 100px;
+    background: currentColor;
+    opacity: 0.05;
+    border-radius: 50%;
+    filter: blur(40px);
+}
+
+.kpi-sub {
+    font-size: 11px;
+    font-weight: 700;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.finance-tab-btn.active {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+}
+
+.profit-badge {
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.profit-badge.negative {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.finance-chart-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+/* Custom Table Tweaks */
+.analytics-table td .debt-value {
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: -0.5px;
+}
+
+/* Gradient fills for bars */
+.h-bar-fill {
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+

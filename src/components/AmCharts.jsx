@@ -106,13 +106,17 @@ const AmBarChartBase = ({
             categoryAxis = chart.yAxes.push(am5xy.CategoryAxis.new(root, {
                 categoryField: xField,
                 renderer: am5xy.AxisRendererY.new(root, {
-                    minGridDistance: 20,
                     cellStartLocation: 0.1,
                     cellEndLocation: 0.9,
+                    inversed: true,
                 }),
             }));
             valueAxis = chart.xAxes.push(am5xy.ValueAxis.new(root, {
-                renderer: am5xy.AxisRendererX.new(root, {}),
+                renderer: am5xy.AxisRendererX.new(root, {
+                    minGridDistance: 50,
+                }),
+                min: 0,
+                extraMax: 0.1,
                 numberFormat: unit === '%' ? "#'%'" : "#,###",
             }));
         } else {
@@ -126,6 +130,8 @@ const AmBarChartBase = ({
             }));
             valueAxis = chart.yAxes.push(am5xy.ValueAxis.new(root, {
                 renderer: am5xy.AxisRendererY.new(root, {}),
+                min: 0,
+                extraMax: 0.1,
                 numberFormat: unit === '%' ? "#'%'" : "#,###",
             }));
         }
@@ -173,8 +179,8 @@ const AmBarChartBase = ({
                 cornerRadiusBL: horizontal ? 0 : 0,
                 cornerRadiusBR: horizontal ? barRadius : 0,
                 strokeOpacity: 0,
-                fillOpacity: 0.9,
-                maxWidth: 40,
+                fillOpacity: 0.85,
+                maxWidth: 50,
             });
             series.columns.template.states.create('hover', { fillOpacity: 1 });
             series.set('fill', am5.color(barColors[i % barColors.length]));
@@ -468,7 +474,8 @@ const AmPieChartBase = ({
  */
 const AmComposedChartBase = ({
     data = [], xField, barFields = [], lineField,
-    height = 300, lineYAxisFormat = "#'%'",
+    height = 300, lineYAxisFormat = "#,###",
+    stacked = true
 }) => {
     const ref = useRef(null);
     useLayoutEffect(() => {
@@ -496,6 +503,8 @@ const AmComposedChartBase = ({
         // Primary Y axis (for bars)
         const yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root, {
             renderer: am5xy.AxisRendererY.new(root, {}),
+            min: 0,
+            extraMax: 0.1,
             numberFormat: '#,###',
         }));
         yAxis.get('renderer').labels.template.setAll({ fontSize: 11 });
@@ -508,7 +517,7 @@ const AmComposedChartBase = ({
                 categoryXField: xField,
                 xAxis, yAxis,
                 name: bf.name,
-                stacked: true,
+                stacked: stacked,
                 tooltip: am5.Tooltip.new(root, {
                     labelText: `{name}: {valueY}`,
                 }),
@@ -542,7 +551,7 @@ const AmComposedChartBase = ({
                 yAxis: yAxis2,
                 name: lineField.name,
                 tooltip: am5.Tooltip.new(root, {
-                    labelText: `{name}: {valueY}%`,
+                    labelText: `{name}: {valueY}`,
                 }),
             }));
             lineSeries.strokes.template.setAll({ strokeWidth: 3 });
@@ -570,7 +579,7 @@ const AmComposedChartBase = ({
         chart.set('cursor', am5xy.XYCursor.new(root, { behavior: 'none' }));
         chart.appear(800, 100);
         return () => root.dispose();
-    }, [data, xField, barFields, lineField, lineYAxisFormat]);
+    }, [data, xField, barFields, lineField, lineYAxisFormat, stacked]);
 
     return (
         <ErrorBoundary height={`${height}px`}>

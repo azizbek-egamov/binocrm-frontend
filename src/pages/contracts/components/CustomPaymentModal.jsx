@@ -15,6 +15,9 @@ const CustomPaymentModal = ({
     isLoading,
     formatPrice
 }) => {
+    const numericAmount = parseInt(String(amount || "").replace(/\s/g, "").replace(/\D/g, "")) || 0;
+    const isOverLimit = numericAmount > remainingBalance;
+
     return (
         <Modal
             isOpen={isOpen}
@@ -35,7 +38,7 @@ const CustomPaymentModal = ({
                         type="button"
                         className="btn-v2 btn-v2-primary"
                         onClick={onSubmit}
-                        disabled={isLoading || !amount}
+                        disabled={isLoading || !amount || isOverLimit}
                     >
                         {isLoading ? 'Jarayonda...' : "To'lovni tasdiqlash"}
                     </button>
@@ -57,10 +60,16 @@ const CustomPaymentModal = ({
                     value={amount}
                     onChange={onAmountChange}
                     placeholder="Summa kiriting"
+                    status={isOverLimit ? 'error' : ''}
                 />
+                {isOverLimit && (
+                    <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', fontWeight: '500' }}>
+                        Diqqat: To'lov miqdori umumiy qarzdan oshib ketdi!
+                    </div>
+                )}
             </FormField>
 
-            <InfoNote type="success">
+            <InfoNote type={isOverLimit ? "error" : "success"}>
                 <strong>Ma'lumot:</strong> Ixtiyoriy to'lov avtomatik ravishda eng yaqin to'lanmagan oylarga taqsimlanadi.
             </InfoNote>
         </Modal>

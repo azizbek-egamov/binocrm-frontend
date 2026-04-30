@@ -16,6 +16,10 @@ const PaymentModalForm = ({
     formatPrice,
     title
 }) => {
+    const numericAmount = parseInt(String(amount || "").replace(/\s/g, "").replace(/\D/g, "")) || 0;
+    const maxAmount = payment?.remaining || 0;
+    const isOverLimit = numericAmount > maxAmount;
+
     return (
         <Modal
             isOpen={isOpen}
@@ -36,7 +40,7 @@ const PaymentModalForm = ({
                         type="button"
                         className="btn-v2 btn-v2-primary"
                         onClick={onSubmit}
-                        disabled={isLoading || !amount}
+                        disabled={isLoading || !amount || isOverLimit}
                     >
                         {isLoading ? 'Jarayonda...' : "To'lovni tasdiqlash"}
                     </button>
@@ -62,10 +66,16 @@ const PaymentModalForm = ({
                     value={amount}
                     onChange={onAmountChange}
                     placeholder="Summa kiriting"
+                    status={isOverLimit ? 'error' : ''}
                 />
+                {isOverLimit && (
+                    <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', fontWeight: '500' }}>
+                        Diqqat: To'lov miqdori qolgan qarzdan oshib ketdi!
+                    </div>
+                )}
             </FormField>
 
-            <InfoNote type="info">
+            <InfoNote type={isOverLimit ? "error" : "info"}>
                 <strong>Eslatma:</strong> To'lov miqdori oy uchun qoldiqdan oshmasligi kerak.
             </InfoNote>
         </Modal>
